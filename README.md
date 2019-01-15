@@ -7,3 +7,9 @@
 Elgato's official [Stream Deck SDK](https://developer.elgato.com/documentation/stream-deck/sdk/overview/) works by launching plugins in their own processes and communicating via web sockets. This library provides the command line argument parsing and basic protocol details for creating a plugin using Rust.
 
 This library is pretty basic for now. In the future it could provide a framework for instancing actions (keys) and routing messages to the appropriate instances.
+
+## Usage
+
+1. Create a binary executable project.
+2. Use `RegistrationParams` to get the information required to use `StreamDeckSocket`.
+3. See [the official documentation](https://developer.elgato.com/documentation/stream-deck/sdk/overview/) for information about [creating manifests](https://developer.elgato.com/documentation/stream-deck/sdk/manifest/) and [loading your plugin](https://developer.elgato.com/documentation/stream-deck/sdk/create-your-own-plugin/).

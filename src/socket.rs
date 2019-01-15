@@ -10,6 +10,11 @@ use tokio_tcp::TcpStream;
 use tokio_tungstenite::{ConnectAsync, WebSocketStream};
 use url::{Host, Url};
 
+/// Provides encoding and decoding for messages sent to/from the Stream Deck software.
+///
+/// - `S` represents settings persisted within the Stream Deck software.
+/// - `MI` represents messages received from the property inspector.
+/// - `MO` represents messages sent to the property inspector.
 pub struct StreamDeckSocket<S, MI, MO> {
     inner: WebSocketStream<TcpStream>,
     _s: PhantomData<S>,
@@ -18,6 +23,20 @@ pub struct StreamDeckSocket<S, MI, MO> {
 }
 
 impl<S, MI, MO> StreamDeckSocket<S, MI, MO> {
+    /// Begins connecting to the Stream Deck software.
+    ///
+    /// `address` may be specified either as a port number or as a `Url`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let params = RegistrationParams::from_args(env::args()).unwrap();
+    /// let connect = StreamDeckSocket::<Settings, PiMessage, PiMessageOut>::connect(params.port, params.event, params.uuid);
+    /// tokio::run(connect
+    ///     .map_err(|e| println!("connection failed: {:?}", e))
+    ///     .and_then(|socket| socket.for_each(|message| println!("received: {:?}", message))
+    ///         .map_err(|e| println!("read error: {:?}", e))));
+    /// ```
     pub fn connect<A: Into<Address>>(
         address: A,
         event: String,
@@ -45,10 +64,13 @@ impl<S, MI, MO> StreamDeckSocket<S, MI, MO> {
     }
 }
 
+/// Represents an error that occurred reading or writing the web socket.
 #[derive(Debug, Fail)]
 pub enum StreamDeckSocketError {
+    /// The web socket reported an error.
     #[fail(display = "WebSocket error")]
     WebSocketError(#[fail(cause)] tungstenite::error::Error),
+    /// The message could not be encoded/decoded.
     #[fail(display = "Bad message")]
     BadMessage(#[fail(cause)] serde_json::Error),
 }
@@ -103,6 +125,7 @@ where
     }
 }
 
+/// Represents an address to connect to.
 pub struct Address {
     pub url: Url,
 }
@@ -121,18 +144,24 @@ impl From<u16> for Address {
     }
 }
 
+/// Represents an error that occurred while connecting to and registering with the Stream Deck software.
 #[derive(Debug, Fail)]
 pub enum ConnectError {
+    /// The address was provided as a Url, but the Url does not refer to a web socket.
     #[fail(display = "Unsupported scheme \"{}\"", _0)]
     UnsupportedScheme(String),
+    /// The network connection could not be established.
     #[fail(display = "Connection error")]
     ConnectionError(#[fail(cause)] std::io::Error),
+    /// The web socket connection could not be established.
     #[fail(display = "Websocket protocol error")]
     ProtocolError(#[fail(cause)] tungstenite::error::Error),
+    /// The registration information could not be sent.
     #[fail(display = "Send error")]
     SendError(#[fail(cause)] tungstenite::error::Error),
 }
 
+#[allow(clippy::large_enum_variant)]
 enum ConnectState {
     UnsupportedScheme(String),
     Connecting(IoFuture<TcpStream>, Url, String, String),
@@ -140,6 +169,7 @@ enum ConnectState {
     Registering(Send<WebSocketStream<TcpStream>>),
 }
 
+/// An in-progress connection to the Stream Deck software.
 pub struct Connect<S, MI, MO> {
     state: Option<ConnectState>,
     _s: PhantomData<S>,
@@ -148,7 +178,7 @@ pub struct Connect<S, MI, MO> {
 }
 
 #[derive(Serialize)]
-pub struct Registration<'a> {
+struct Registration<'a> {
     event: &'a str,
     uuid: &'a str,
 }
