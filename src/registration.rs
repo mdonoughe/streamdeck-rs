@@ -122,8 +122,10 @@ pub struct RegistrationInfoApplication {
 ///
 /// [Official Documentation](https://developer.elgato.com/documentation/stream-deck/sdk/registration-procedure/#info-parameter)
 #[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct RegistrationInfo {
     pub application: RegistrationInfoApplication,
+    pub device_pixel_ratio: u8,
     pub devices: Vec<RegistrationInfoDevice>,
 }
 

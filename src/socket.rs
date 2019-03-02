@@ -15,14 +15,15 @@ use url::{Host, Url};
 /// - `S` represents settings persisted within the Stream Deck software.
 /// - `MI` represents messages received from the property inspector.
 /// - `MO` represents messages sent to the property inspector.
-pub struct StreamDeckSocket<S, MI, MO> {
+pub struct StreamDeckSocket<G, S, MI, MO> {
     inner: WebSocketStream<TcpStream>,
+    _g: PhantomData<G>,
     _s: PhantomData<S>,
     _mi: PhantomData<MI>,
     _mo: PhantomData<MO>,
 }
 
-impl<S, MI, MO> StreamDeckSocket<S, MI, MO> {
+impl<G, S, MI, MO> StreamDeckSocket<G, S, MI, MO> {
     /// Begins connecting to the Stream Deck software.
     ///
     /// `address` may be specified either as a port number or as a `Url`.
@@ -31,7 +32,7 @@ impl<S, MI, MO> StreamDeckSocket<S, MI, MO> {
     ///
     /// ```
     /// let params = RegistrationParams::from_args(env::args()).unwrap();
-    /// let connect = StreamDeckSocket::<Settings, PiMessage, PiMessageOut>::connect(params.port, params.event, params.uuid);
+    /// let connect = StreamDeckSocket::<GlobalSettings, ActionSettings, PiMessage, PiMessageOut>::connect(params.port, params.event, params.uuid);
     /// tokio::run(connect
     ///     .map_err(|e| println!("connection failed: {:?}", e))
     ///     .and_then(|socket| socket.for_each(|message| println!("received: {:?}", message))
@@ -41,7 +42,7 @@ impl<S, MI, MO> StreamDeckSocket<S, MI, MO> {
         address: A,
         event: String,
         uuid: String,
-    ) -> Connect<S, MI, MO> {
+    ) -> Connect<G, S, MI, MO> {
         let address: Address = address.into();
 
         Connect {
@@ -57,6 +58,7 @@ impl<S, MI, MO> StreamDeckSocket<S, MI, MO> {
                 }
                 scheme => ConnectState::UnsupportedScheme(scheme.to_string()),
             }),
+            _g: PhantomData,
             _s: PhantomData,
             _mi: PhantomData,
             _mo: PhantomData,
@@ -75,12 +77,13 @@ pub enum StreamDeckSocketError {
     BadMessage(#[fail(cause)] serde_json::Error),
 }
 
-impl<S, MI, MO> Stream for StreamDeckSocket<S, MI, MO>
+impl<G, S, MI, MO> Stream for StreamDeckSocket<G, S, MI, MO>
 where
+    G: de::DeserializeOwned,
     S: de::DeserializeOwned,
     MI: de::DeserializeOwned,
 {
-    type Item = Message<S, MI>;
+    type Item = Message<G, S, MI>;
     type Error = StreamDeckSocketError;
 
     fn poll(&mut self) -> Poll<Option<Self::Item>, Self::Error> {
@@ -90,7 +93,7 @@ where
                     break match serde_json::from_str(&message) {
                         Ok(message) => Ok(Async::Ready(Some(message))),
                         Err(error) => Err(StreamDeckSocketError::BadMessage(error)),
-                    }
+                    };
                 }
                 Ok(Async::Ready(Some(_))) => {}
                 Ok(Async::Ready(None)) => break Ok(Async::Ready(None)),
@@ -101,12 +104,13 @@ where
     }
 }
 
-impl<S, MI, MO> Sink for StreamDeckSocket<S, MI, MO>
+impl<G, S, MI, MO> Sink for StreamDeckSocket<G, S, MI, MO>
 where
+    G: ser::Serialize,
     S: ser::Serialize,
     MO: ser::Serialize,
 {
-    type SinkItem = MessageOut<S, MO>;
+    type SinkItem = MessageOut<G, S, MO>;
     type SinkError = StreamDeckSocketError;
 
     fn start_send(&mut self, item: Self::SinkItem) -> StartSend<Self::SinkItem, Self::SinkError> {
@@ -170,8 +174,9 @@ enum ConnectState {
 }
 
 /// An in-progress connection to the Stream Deck software.
-pub struct Connect<S, MI, MO> {
+pub struct Connect<G, S, MI, MO> {
     state: Option<ConnectState>,
+    _g: PhantomData<G>,
     _s: PhantomData<S>,
     _mi: PhantomData<MI>,
     _mo: PhantomData<MO>,
@@ -183,15 +188,15 @@ struct Registration<'a> {
     uuid: &'a str,
 }
 
-impl<S, MI, MO> Future for Connect<S, MI, MO> {
-    type Item = StreamDeckSocket<S, MI, MO>;
+impl<G, S, MI, MO> Future for Connect<G, S, MI, MO> {
+    type Item = StreamDeckSocket<G, S, MI, MO>;
     type Error = ConnectError;
 
     fn poll(&mut self) -> Poll<Self::Item, Self::Error> {
         self.state = Some(loop {
             self.state = Some(match self.state.take() {
                 Some(ConnectState::UnsupportedScheme(scheme)) => {
-                    return Err(ConnectError::UnsupportedScheme(scheme.to_string()))
+                    return Err(ConnectError::UnsupportedScheme(scheme.to_string()));
                 }
                 Some(ConnectState::Connecting(mut future, url, event, uuid)) => {
                     match future.poll() {
@@ -204,7 +209,7 @@ impl<S, MI, MO> Future for Connect<S, MI, MO> {
                             )
                         }
                         Ok(Async::NotReady) => {
-                            break ConnectState::Connecting(future, url, event, uuid)
+                            break ConnectState::Connecting(future, url, event, uuid);
                         }
                         Err(err) => return Err(ConnectError::ConnectionError(err)),
                     }
@@ -225,10 +230,11 @@ impl<S, MI, MO> Future for Connect<S, MI, MO> {
                     Ok(Async::Ready(stream)) => {
                         return Ok(Async::Ready(StreamDeckSocket {
                             inner: stream,
+                            _g: PhantomData,
                             _s: PhantomData,
                             _mi: PhantomData,
                             _mo: PhantomData,
-                        }))
+                        }));
                     }
                     Ok(Async::NotReady) => break ConnectState::Registering(future),
                     Err(err) => return Err(ConnectError::SendError(err)),

@@ -19,13 +19,14 @@ use std::fmt;
 
 /// A message received from the Stream Deck software.
 ///
+/// - `G` represents the global settings that are persisted within the Stream Deck software.
 /// - `S` represents the settings that are persisted within the Stream Deck software.
 /// - `M` represents the messages that are received from the property inspector.
 ///
 /// [Official Documentation](https://developer.elgato.com/documentation/stream-deck/sdk/events-received/)
 #[derive(Debug, Deserialize)]
 #[serde(tag = "event", rename_all = "camelCase")]
-pub enum Message<S, M> {
+pub enum Message<G, S, M> {
     /// A key has been pressed.
     ///
     /// [Official Documentation](https://developer.elgato.com/documentation/stream-deck/sdk/events-received/#keydown)
@@ -142,17 +143,70 @@ pub enum Message<S, M> {
         /// Information sent from the property inspector.
         payload: M,
     },
+    /// The application has sent settings for an action.
+    ///
+    /// This message is sent in response to GetSettings, but also after the
+    /// property inspector changes the settings.
+    ///
+    /// [Official Documentation](https://developer.elgato.com/documentation/stream-deck/sdk/events-received/#didreceivesettings)
+    #[serde(rename_all = "camelCase")]
+    DidReceiveSettings {
+        /// The uuid of the action.
+        action: String,
+        /// The instance of the action (key or part of a multiaction).
+        context: String,
+        /// The device where the action exists.
+        device: String,
+        /// The current settings for the action.
+        payload: KeyPayload<S>,
+    },
+    /// The property inspector for an action has become visible.
+    ///
+    /// [Official Documentation](https://developer.elgato.com/documentation/stream-deck/sdk/events-received/#propertyinspectordidappear)
+    #[serde(rename_all = "camelCase")]
+    PropertyInspectorDidAppear {
+        /// The uuid of the action.
+        action: String,
+        /// The instance of the action (key or part of a multiaction).
+        context: String,
+        /// The device where the action exists.
+        device: String,
+    },
+    /// The property inspector for an action is no longer visible.
+    ///
+    /// [Official Documentation](https://developer.elgato.com/documentation/stream-deck/sdk/events-received/#propertyinspectordiddisappear)
+    #[serde(rename_all = "camelCase")]
+    PropertyInspectorDidDisappear {
+        /// The uuid of the action.
+        action: String,
+        /// The instance of the action (key or part of a multiaction).
+        context: String,
+        /// The device where the action exists.
+        device: String,
+    },
+    /// The application has sent settings for an action.
+    ///
+    /// This message is sent in response to GetGlobalSettings, but also after
+    /// the property inspector changes the settings.
+    ///
+    /// [Official Documentation](https://developer.elgato.com/documentation/stream-deck/sdk/events-received/#didreceiveglobalsettings)
+    #[serde(rename_all = "camelCase")]
+    DidReceiveGlobalSettings {
+        /// The current settings for the action.
+        payload: GlobalSettingsPayload<G>,
+    },
 }
 
 /// A message to be sent to the Stream Deck software.
 ///
-/// - `S` represents the settings that are persisted within the Stream Deck software.
+/// - `G` represents the global settings that are persisted within the Stream Deck software.
+/// - `S` represents the action settings that are persisted within the Stream Deck software.
 /// - `M` represents the messages that are sent to the property inspector.
 ///
 /// [Official Documentation](https://developer.elgato.com/documentation/stream-deck/sdk/events-sent/)
 #[derive(Debug, Serialize)]
 #[serde(tag = "event", rename_all = "camelCase")]
-pub enum MessageOut<S, M> {
+pub enum MessageOut<G, S, M> {
     /// Set the title of an action instance.
     ///
     /// [Official Documentation](https://developer.elgato.com/documentation/stream-deck/sdk/events-sent/#settitle)
@@ -186,6 +240,14 @@ pub enum MessageOut<S, M> {
     /// [Official Documentation](https://developer.elgato.com/documentation/stream-deck/sdk/events-sent/#showok)
     #[serde(rename_all = "camelCase")]
     ShowOk {
+        /// The instance of the action (key or part of a multiaction).
+        context: String,
+    },
+    /// Retrieve settings for an instance of an action via DidReceiveSettings.
+    ///
+    /// [Official Documentation](https://developer.elgato.com/documentation/stream-deck/sdk/events-sent/#getsettings)
+    #[serde(rename_all = "camelCase")]
+    GetSettings {
         /// The instance of the action (key or part of a multiaction).
         context: String,
     },
@@ -242,6 +304,32 @@ pub enum MessageOut<S, M> {
     OpenUrl {
         /// The url to open.
         payload: UrlPayload,
+    },
+    /// Retrieve plugin settings for via DidReceiveGlobalSettings.
+    ///
+    /// [Official Documentation](https://developer.elgato.com/documentation/stream-deck/sdk/events-sent/#getglobalsettings)
+    #[serde(rename_all = "camelCase")]
+    GetGlobalSettings {
+        /// The instance of the action (key or part of a multiaction).
+        context: String,
+    },
+    /// Store plugin settings.
+    ///
+    /// [Official Documentation](https://developer.elgato.com/documentation/stream-deck/sdk/events-sent/#setglobalsettings)
+    #[serde(rename_all = "camelCase")]
+    SetGlobalSettings {
+        /// The instance of the action (key or part of a multiaction).
+        context: String,
+        /// The settings to save.
+        payload: G,
+    },
+    /// Write to the log.
+    ///
+    /// [Official Documentation](https://developer.elgato.com/documentation/stream-deck/sdk/events-sent/#logmessage)
+    #[serde(rename_all = "camelCase")]
+    LogMessage {
+        /// The message to log.
+        payload: LogMessagePayload,
     },
 }
 
@@ -365,6 +453,22 @@ pub struct TitleParametersPayload<S> {
     pub title: String,
     /// Additional parameters for the display of the title.
     pub title_parameters: TitleParameters,
+}
+
+/// The new global settings.
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GlobalSettingsPayload<G> {
+    /// The stored settings for the plugin.
+    pub settings: G,
+}
+
+/// A log message.
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct LogMessagePayload {
+    /// The log message text.
+    pub message: String,
 }
 
 /// Information about a hardware device.
