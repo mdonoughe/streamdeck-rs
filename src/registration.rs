@@ -118,7 +118,7 @@ pub struct RegistrationInfoApplication {
     pub version: String,
 }
 
-/// Information about environment the plugin is being loaded into.
+/// Information about the environment the plugin is being loaded into.
 ///
 /// [Official Documentation](https://developer.elgato.com/documentation/stream-deck/sdk/registration-procedure/#info-parameter)
 #[derive(Deserialize)]
