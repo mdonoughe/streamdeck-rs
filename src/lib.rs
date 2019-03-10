@@ -7,6 +7,8 @@ extern crate tokio_tcp;
 extern crate tokio_tungstenite;
 extern crate tungstenite;
 
+#[cfg(feature = "logging")]
+pub mod logging;
 pub mod registration;
 pub mod socket;
 
