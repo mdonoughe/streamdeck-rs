@@ -197,6 +197,13 @@ pub enum Message<G, S, M> {
         /// The current settings for the action.
         payload: GlobalSettingsPayload<G>,
     },
+    /// An event from an unsupported version of the Stream Deck software.
+    ///
+    /// This occurs when the Stream Deck software sends an event that is not
+    /// understood. Usually this will be because the Stream Deck software is
+    /// newer than the plugin, and it should be safe to ignore these.
+    #[serde(other)]
+    Unknown,
 }
 
 /// A message to be sent to the Stream Deck software.
