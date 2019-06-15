@@ -12,6 +12,10 @@ use std::str::FromStr;
 pub struct RegistrationInfoDevice {
     /// The ID of the specific device.
     pub id: String,
+    /// The user-specified name of the device.
+    ///
+    /// Added in Stream Deck software version 4.3.
+    pub name: Option<String>,
     /// The size of the device.
     pub size: DeviceSize,
     /// The type of the device.

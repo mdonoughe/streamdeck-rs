@@ -6,7 +6,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
-## 0.2.0 - 2019-03-10
+## [0.3.0] - 2019-06-15
+### Added
+- New events and properties from Stream Deck software version 4.3.
+
+### Changed
+- Unrecognized events are now reported as `Message::Unknown` instead of an error.
+
+## [0.2.0] - 2019-03-10
 ### Added
 - Logging support via Slog.
 
@@ -18,4 +25,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Command line parsing.
 - Protocol for registration and message handling.
 
-[Unreleased]: https://github.com/mdonoughe/streamdeck-rs/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/mdonoughe/streamdeck-rs/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/mdonoughe/streamdeck-rs/compare/v0.2.0...v0.3.0
+[0.2.0]: https://github.com/mdonoughe/streamdeck-rs/compare/v0.1.0...v0.2.0

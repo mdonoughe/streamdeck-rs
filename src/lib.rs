@@ -197,6 +197,12 @@ pub enum Message<G, S, M> {
         /// The current settings for the action.
         payload: GlobalSettingsPayload<G>,
     },
+    /// The computer has resumed from sleep.
+    ///
+    /// Added in Stream Deck software version 4.3.
+    ///
+    /// [Official Documentation](https://developer.elgato.com/documentation/stream-deck/sdk/events-received/#systemdidwakeup)
+    SystemDidWakeUp,
     /// An event from an unsupported version of the Stream Deck software.
     ///
     /// This occurs when the Stream Deck software sends an event that is not
@@ -482,10 +488,14 @@ pub struct LogMessagePayload {
 
 /// Information about a hardware device.
 ///
-/// [Official Documentation](https://developer.elgato.com/documentation/stream-deck/sdk/registration-procedure/#Info-parameter)
+/// [Official Documentation](https://developer.elgato.com/documentation/stream-deck/sdk/events-received/#devicedidconnect)
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct DeviceInfo {
+    /// The user-provided name of the device.
+    ///
+    /// Added in Stream Deck software version 4.3.
+    pub name: Option<String>,
     /// The size of the device.
     pub size: DeviceSize,
     /// The type of the device, or None if the Stream Deck software is running with no device attached.
@@ -568,7 +578,15 @@ pub enum DeviceType {
     StreamDeck,
     /// The [Stream Deck Mini](https://www.elgato.com/en/gaming/stream-deck-mini).
     StreamDeckMini,
-    /// A device not documented in the 4.0.0 SDK.
+    /// The [Stream Deck XL](https://www.elgato.com/en/gaming/stream-deck-xl).
+    ///
+    /// Added in Stream Deck software version 4.3.
+    StreamDeckXl,
+    /// The [Stream Deck Mobile](https://www.elgato.com/en/gaming/stream-deck-mobile) app.
+    ///
+    /// Added in Stream Deck software version 4.3.
+    StreamDeckMobile,
+    /// A device not documented in the 4.3.0 SDK.
     Unknown(u64),
 }
 
