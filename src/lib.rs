@@ -435,7 +435,7 @@ pub struct KeyPayload<S> {
     /// The location of the key that was pressed, or None if this action instance is part of a multi action.
     pub coordinates: Option<Coordinates>,
     /// The current state of the action instance.
-    pub state: u8,
+    pub state: Option<u8>,
     /// The desired state of the action instance (if this instance is part of a multi action).
     pub user_desired_state: Option<u8>,
     //TODO: is_in_multi_action ignored. replace coordinates with enum Location { Coordinates, MultiAction }.
@@ -450,7 +450,7 @@ pub struct VisibilityPayload<S> {
     /// The location of the key, or None if this action instance is part of a multi action.
     pub coordinates: Option<Coordinates>,
     /// The state of the action instance.
-    pub state: u8,
+    pub state: Option<u8>,
     //TODO: is_in_multi_action ignored. replace coordinates with enum Location { Coordinates, MultiAction }.
 }
 
