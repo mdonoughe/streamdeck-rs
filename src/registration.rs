@@ -189,7 +189,7 @@ impl RegistrationParams {
         let mut info = None;
 
         loop {
-            match iter.next().as_ref().map(|a| a.as_str()) {
+            match iter.next().as_deref() {
                 Some("-port") => port = iter.next().map(|a| u16::from_str(&a)),
                 Some("-pluginUUID") => uuid = iter.next(),
                 Some("-registerEvent") => event = iter.next(),

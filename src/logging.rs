@@ -1,5 +1,5 @@
 use crate::{LogMessagePayload, MessageOut};
-use futures::sync::mpsc;
+use futures::channel::mpsc;
 use slog::{Drain, Key, OwnedKVList, Record, KV};
 use std::fmt::{self, Write};
 use std::sync::Mutex;
@@ -18,7 +18,7 @@ impl<G, S, M> StreamDeckDrain<G, S, M> {
 
 impl<G, S, M> Drain for StreamDeckDrain<G, S, M> {
     type Ok = ();
-    type Err = mpsc::SendError<MessageOut<G, S, M>>;
+    type Err = mpsc::TrySendError<MessageOut<G, S, M>>;
 
     fn log(&self, record: &Record, values: &OwnedKVList) -> Result<Self::Ok, Self::Err> {
         let mut message = format!("{} {}", record.level().as_short_str(), record.msg());
@@ -29,11 +29,8 @@ impl<G, S, M> Drain for StreamDeckDrain<G, S, M> {
 
         let kv_len = serializer.stack.iter().fold(0, |a, b| a + b.len() + 2);
         message.reserve_exact(kv_len);
-        loop {
-            match serializer.stack.pop() {
-                Some(value) => write!(message, ", {}", value).unwrap(),
-                None => break,
-            }
+        while let Some(value) = serializer.stack.pop() {
+            write!(message, ", {}", value).unwrap()
         }
 
         self.sink

@@ -1,12 +1,3 @@
-extern crate failure;
-extern crate serde;
-extern crate serde_derive;
-extern crate serde_json;
-extern crate tokio_dns;
-extern crate tokio_tcp;
-extern crate tokio_tungstenite;
-extern crate tungstenite;
-
 #[cfg(feature = "logging")]
 pub mod logging;
 pub mod registration;

@@ -1,14 +1,14 @@
 use super::{Message, MessageOut};
 use failure::Fail;
 use futures::prelude::*;
-use futures::sink::Send;
 use serde::{de, ser};
 use serde_derive::Serialize;
 use std::marker::PhantomData;
-use tokio_dns::IoFuture;
-use tokio_tcp::TcpStream;
-use tokio_tungstenite::{ConnectAsync, WebSocketStream};
-use url::{Host, Url};
+use std::pin::Pin;
+use std::task::{Context, Poll};
+use tokio::net::TcpStream;
+use tokio_tungstenite::{self, WebSocketStream};
+use url::Url;
 
 /// Provides encoding and decoding for messages sent to/from the Stream Deck software.
 ///
@@ -38,31 +38,38 @@ impl<G, S, MI, MO> StreamDeckSocket<G, S, MI, MO> {
     ///     .and_then(|socket| socket.for_each(|message| println!("received: {:?}", message))
     ///         .map_err(|e| println!("read error: {:?}", e))));
     /// ```
-    pub fn connect<A: Into<Address>>(
+    pub async fn connect<A: Into<Address>>(
         address: A,
         event: String,
         uuid: String,
-    ) -> Connect<G, S, MI, MO> {
-        let address: Address = address.into();
+    ) -> Result<Self, ConnectError> {
+        let address = address.into();
 
-        Connect {
-            state: Some(match address.url.scheme() {
-                "ws" => {
-                    let end = address.url.with_default_port(|_| Err(())).unwrap();
-                    let future = match end.host {
-                        Host::Domain(host) => tokio_dns::TcpStream::connect((host, end.port)),
-                        Host::Ipv4(host) => tokio_dns::TcpStream::connect((host, end.port)),
-                        Host::Ipv6(host) => tokio_dns::TcpStream::connect((host, end.port)),
-                    };
-                    ConnectState::Connecting(future, address.url, event, uuid)
-                }
-                scheme => ConnectState::UnsupportedScheme(scheme.to_string()),
-            }),
+        let (mut stream, _) = tokio_tungstenite::connect_async(address.url)
+            .await
+            .map_err(ConnectError::ConnectionError)?;
+
+        let message = serde_json::to_string(&Registration {
+            event: &event,
+            uuid: &uuid,
+        })
+        .unwrap();
+        stream
+            .send(tungstenite::Message::Text(message))
+            .await
+            .map_err(ConnectError::SendError)?;
+
+        Ok(StreamDeckSocket {
+            inner: stream,
             _g: PhantomData,
             _s: PhantomData,
             _mi: PhantomData,
             _mo: PhantomData,
-        }
+        })
+    }
+
+    fn pin_get_inner(self: Pin<&mut Self>) -> Pin<&mut WebSocketStream<TcpStream>> {
+        unsafe { self.map_unchecked_mut(|s| &mut s.inner) }
     }
 }
 
@@ -83,48 +90,61 @@ where
     S: de::DeserializeOwned,
     MI: de::DeserializeOwned,
 {
-    type Item = Message<G, S, MI>;
-    type Error = StreamDeckSocketError;
+    type Item = Result<Message<G, S, MI>, StreamDeckSocketError>;
 
-    fn poll(&mut self) -> Poll<Option<Self::Item>, Self::Error> {
+    fn poll_next(self: Pin<&mut Self>, cx: &mut Context) -> Poll<Option<Self::Item>> {
+        let mut inner = self.pin_get_inner();
         loop {
-            match self.inner.poll() {
-                Ok(Async::Ready(Some(tungstenite::Message::Text(message)))) => {
+            match inner.as_mut().poll_next(cx) {
+                Poll::Ready(Some(Ok(tungstenite::Message::Text(message)))) => {
                     break match serde_json::from_str(&message) {
-                        Ok(message) => Ok(Async::Ready(Some(message))),
-                        Err(error) => Err(StreamDeckSocketError::BadMessage(error)),
+                        Ok(message) => Poll::Ready(Some(Ok(message))),
+                        Err(error) => {
+                            Poll::Ready(Some(Err(StreamDeckSocketError::BadMessage(error))))
+                        }
                     };
                 }
-                Ok(Async::Ready(Some(_))) => {}
-                Ok(Async::Ready(None)) => break Ok(Async::Ready(None)),
-                Ok(Async::NotReady) => break Ok(Async::NotReady),
-                Err(error) => break Err(StreamDeckSocketError::WebSocketError(error)),
+                Poll::Ready(Some(Ok(_))) => {}
+                Poll::Ready(Some(Err(error))) => {
+                    break Poll::Ready(Some(Err(StreamDeckSocketError::WebSocketError(error))))
+                }
+                Poll::Ready(None) => break Poll::Ready(None),
+                Poll::Pending => break Poll::Pending,
             }
         }
     }
 }
 
-impl<G, S, MI, MO> Sink for StreamDeckSocket<G, S, MI, MO>
+impl<G, S, MI, MO> Sink<MessageOut<G, S, MO>> for StreamDeckSocket<G, S, MI, MO>
 where
     G: ser::Serialize,
     S: ser::Serialize,
     MO: ser::Serialize,
 {
-    type SinkItem = MessageOut<G, S, MO>;
-    type SinkError = StreamDeckSocketError;
+    type Error = StreamDeckSocketError;
 
-    fn start_send(&mut self, item: Self::SinkItem) -> StartSend<Self::SinkItem, Self::SinkError> {
-        let message = serde_json::to_string(&item).map_err(StreamDeckSocketError::BadMessage)?;
-        match self.inner.start_send(tungstenite::Message::Text(message)) {
-            Ok(AsyncSink::Ready) => Ok(AsyncSink::Ready),
-            Ok(AsyncSink::NotReady(_)) => Ok(AsyncSink::NotReady(item)),
-            Err(error) => Err(StreamDeckSocketError::WebSocketError(error)),
-        }
+    fn poll_ready(self: Pin<&mut Self>, cx: &mut Context) -> Poll<Result<(), Self::Error>> {
+        self.pin_get_inner()
+            .poll_ready(cx)
+            .map_err(StreamDeckSocketError::WebSocketError)
     }
 
-    fn poll_complete(&mut self) -> Poll<(), Self::SinkError> {
-        self.inner
-            .poll_complete()
+    fn start_send(self: Pin<&mut Self>, item: MessageOut<G, S, MO>) -> Result<(), Self::Error> {
+        let message = serde_json::to_string(&item).map_err(StreamDeckSocketError::BadMessage)?;
+        self.pin_get_inner()
+            .start_send(tungstenite::Message::Text(message))
+            .map_err(StreamDeckSocketError::WebSocketError)
+    }
+
+    fn poll_flush(self: Pin<&mut Self>, cx: &mut Context) -> Poll<Result<(), Self::Error>> {
+        self.pin_get_inner()
+            .poll_flush(cx)
+            .map_err(StreamDeckSocketError::WebSocketError)
+    }
+
+    fn poll_close(self: Pin<&mut Self>, cx: &mut Context) -> Poll<Result<(), Self::Error>> {
+        self.pin_get_inner()
+            .poll_close(cx)
             .map_err(StreamDeckSocketError::WebSocketError)
     }
 }
@@ -151,97 +171,16 @@ impl From<u16> for Address {
 /// Represents an error that occurred while connecting to and registering with the Stream Deck software.
 #[derive(Debug, Fail)]
 pub enum ConnectError {
-    /// The address was provided as a Url, but the Url does not refer to a web socket.
-    #[fail(display = "Unsupported scheme \"{}\"", _0)]
-    UnsupportedScheme(String),
-    /// The network connection could not be established.
-    #[fail(display = "Connection error")]
-    ConnectionError(#[fail(cause)] std::io::Error),
     /// The web socket connection could not be established.
-    #[fail(display = "Websocket protocol error")]
-    ProtocolError(#[fail(cause)] tungstenite::error::Error),
+    #[fail(display = "Websocket connection error")]
+    ConnectionError(#[fail(cause)] tungstenite::error::Error),
     /// The registration information could not be sent.
     #[fail(display = "Send error")]
     SendError(#[fail(cause)] tungstenite::error::Error),
-}
-
-#[allow(clippy::large_enum_variant)]
-enum ConnectState {
-    UnsupportedScheme(String),
-    Connecting(IoFuture<TcpStream>, Url, String, String),
-    Negotiating(ConnectAsync<TcpStream>, String, String),
-    Registering(Send<WebSocketStream<TcpStream>>),
-}
-
-/// An in-progress connection to the Stream Deck software.
-pub struct Connect<G, S, MI, MO> {
-    state: Option<ConnectState>,
-    _g: PhantomData<G>,
-    _s: PhantomData<S>,
-    _mi: PhantomData<MI>,
-    _mo: PhantomData<MO>,
 }
 
 #[derive(Serialize)]
 struct Registration<'a> {
     event: &'a str,
     uuid: &'a str,
-}
-
-impl<G, S, MI, MO> Future for Connect<G, S, MI, MO> {
-    type Item = StreamDeckSocket<G, S, MI, MO>;
-    type Error = ConnectError;
-
-    fn poll(&mut self) -> Poll<Self::Item, Self::Error> {
-        self.state = Some(loop {
-            self.state = Some(match self.state.take() {
-                Some(ConnectState::UnsupportedScheme(scheme)) => {
-                    return Err(ConnectError::UnsupportedScheme(scheme.to_string()));
-                }
-                Some(ConnectState::Connecting(mut future, url, event, uuid)) => {
-                    match future.poll() {
-                        Ok(Async::Ready(stream)) => {
-                            let _ = stream.set_nodelay(true);
-                            ConnectState::Negotiating(
-                                tokio_tungstenite::client_async(url, stream),
-                                event,
-                                uuid,
-                            )
-                        }
-                        Ok(Async::NotReady) => {
-                            break ConnectState::Connecting(future, url, event, uuid);
-                        }
-                        Err(err) => return Err(ConnectError::ConnectionError(err)),
-                    }
-                }
-                Some(ConnectState::Negotiating(mut future, event, uuid)) => match future.poll() {
-                    Ok(Async::Ready((stream, _))) => {
-                        let message = serde_json::to_string(&Registration {
-                            event: &event,
-                            uuid: &uuid,
-                        })
-                        .unwrap();
-                        ConnectState::Registering(stream.send(tungstenite::Message::Text(message)))
-                    }
-                    Ok(Async::NotReady) => break ConnectState::Negotiating(future, event, uuid),
-                    Err(err) => return Err(ConnectError::ProtocolError(err)),
-                },
-                Some(ConnectState::Registering(mut future)) => match future.poll() {
-                    Ok(Async::Ready(stream)) => {
-                        return Ok(Async::Ready(StreamDeckSocket {
-                            inner: stream,
-                            _g: PhantomData,
-                            _s: PhantomData,
-                            _mi: PhantomData,
-                            _mo: PhantomData,
-                        }));
-                    }
-                    Ok(Async::NotReady) => break ConnectState::Registering(future),
-                    Err(err) => return Err(ConnectError::SendError(err)),
-                },
-                None => panic!("tried to poll consumed future"),
-            })
-        });
-        Ok(Async::NotReady)
-    }
 }

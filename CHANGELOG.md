@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [0.5.0] - 2020-05-16
+### Changed
+- Now compatible with futures 0.3.
+
 ## [0.4.0] - 2019-08-24
 ### Fixed
 - `VisibilityPayload<S>::State` and `KeyPayload<S>::State` are now `Option<u8>` for compatibility with plugins that don't have states. [#3](https://github.com/mdonoughe/streamdeck-rs/issues/3)
@@ -29,7 +33,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Command line parsing.
 - Protocol for registration and message handling.
 
-[Unreleased]: https://github.com/mdonoughe/streamdeck-rs/compare/v0.4.0...HEAD
-[0.3.0]: https://github.com/mdonoughe/streamdeck-rs/compare/v0.3.0...v0.4.0
+[Unreleased]: https://github.com/mdonoughe/streamdeck-rs/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/mdonoughe/streamdeck-rs/compare/v0.4.0...v0.5.0
+[0.4.0]: https://github.com/mdonoughe/streamdeck-rs/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/mdonoughe/streamdeck-rs/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/mdonoughe/streamdeck-rs/compare/v0.1.0...v0.2.0
