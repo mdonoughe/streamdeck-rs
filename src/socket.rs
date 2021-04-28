@@ -7,7 +7,7 @@ use std::marker::PhantomData;
 use std::pin::Pin;
 use std::task::{Context, Poll};
 use tokio::net::TcpStream;
-use tokio_tungstenite::{self, WebSocketStream};
+use tokio_tungstenite::{self, WebSocketStream, MaybeTlsStream};
 use url::Url;
 
 /// Provides encoding and decoding for messages sent to/from the Stream Deck software.
@@ -16,7 +16,7 @@ use url::Url;
 /// - `MI` represents messages received from the property inspector.
 /// - `MO` represents messages sent to the property inspector.
 pub struct StreamDeckSocket<G, S, MI, MO> {
-    inner: WebSocketStream<TcpStream>,
+    inner: WebSocketStream<MaybeTlsStream<TcpStream>>,
     _g: PhantomData<G>,
     _s: PhantomData<S>,
     _mi: PhantomData<MI>,
@@ -68,7 +68,7 @@ impl<G, S, MI, MO> StreamDeckSocket<G, S, MI, MO> {
         })
     }
 
-    fn pin_get_inner(self: Pin<&mut Self>) -> Pin<&mut WebSocketStream<TcpStream>> {
+    fn pin_get_inner(self: Pin<&mut Self>) -> Pin<&mut WebSocketStream<MaybeTlsStream<TcpStream>>> {
         unsafe { self.map_unchecked_mut(|s| &mut s.inner) }
     }
 }
