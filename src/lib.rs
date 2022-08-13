@@ -562,22 +562,34 @@ pub struct DeviceSize {
 
 /// The type of connected hardware device.
 ///
-/// [Official Documentation](https://developer.elgato.com/documentation/stream-deck/sdk/overview/#stream-deck-hardware)
+/// [Official Documentation](https://developer.elgato.com/documentation/stream-deck/sdk/manifest/#profiles)
 #[derive(Debug)]
 pub enum DeviceType {
     /// The [Stream Deck](https://www.elgato.com/en/gaming/stream-deck).
-    StreamDeck,
+    StreamDeck, // 0
     /// The [Stream Deck Mini](https://www.elgato.com/en/gaming/stream-deck-mini).
-    StreamDeckMini,
+    StreamDeckMini, // 1
     /// The [Stream Deck XL](https://www.elgato.com/en/gaming/stream-deck-xl).
     ///
     /// Added in Stream Deck software version 4.3.
-    StreamDeckXl,
+    StreamDeckXl, // 2
     /// The [Stream Deck Mobile](https://www.elgato.com/en/gaming/stream-deck-mobile) app.
     ///
     /// Added in Stream Deck software version 4.3.
-    StreamDeckMobile,
-    /// A device not documented in the 4.3.0 SDK.
+    StreamDeckMobile, // 3
+    /// The G-keys in Corsair keyboards
+    ///
+    /// Added in Stream Deck software version 4.7
+    CorsairGKeys, // 4
+    /// The [Stream Deck Pedal](https://www.elgato.com/en/stream-deck-pedal).
+    ///
+    /// Added in Stream Deck software version 5.2
+    StreamDeckPedal, // 5
+    /// The [Corsair Voyager Streaming Laptop](https://www.corsair.com/us/en/voyager-a1600-gaming-streaming-pc-laptop).
+    ///
+    /// Added in Stream Deck software version 5.3
+    CorsairVoyager,
+    /// A device not documented in the 5.3 SDK.
     Unknown(u64),
 }
 
@@ -602,6 +614,11 @@ impl<'de> de::Deserialize<'de> for DeviceType {
                 Ok(match value {
                     0 => DeviceType::StreamDeck,
                     1 => DeviceType::StreamDeckMini,
+                    2 => DeviceType::StreamDeckXl,
+                    3 => DeviceType::StreamDeckMobile,
+                    4 => DeviceType::CorsairGKeys,
+                    5 => DeviceType::StreamDeckPedal,
+                    6 => DeviceType::CorsairVoyager,
                     value => DeviceType::Unknown(value),
                 })
             }
