@@ -7,7 +7,7 @@ use std::marker::PhantomData;
 use std::pin::Pin;
 use std::task::{Context, Poll};
 use tokio::net::TcpStream;
-use tokio_tungstenite::{self, WebSocketStream, MaybeTlsStream};
+use tokio_tungstenite::{self, MaybeTlsStream, WebSocketStream};
 use url::Url;
 
 /// Provides encoding and decoding for messages sent to/from the Stream Deck software.
