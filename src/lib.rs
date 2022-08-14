@@ -8,6 +8,7 @@ pub use crate::socket::StreamDeckSocket;
 
 use serde::{de, ser};
 use serde_derive::{Deserialize, Serialize};
+use serde_repr::{Deserialize_repr, Serialize_repr};
 use std::fmt;
 
 /// A message received from the Stream Deck software.
@@ -17,7 +18,7 @@ use std::fmt;
 /// - `M` represents the messages that are received from the property inspector.
 ///
 /// [Official Documentation](https://developer.elgato.com/documentation/stream-deck/sdk/events-received/)
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 #[serde(tag = "event", rename_all = "camelCase")]
 pub enum Message<G, S, M> {
     /// A key has been pressed.
@@ -210,7 +211,7 @@ pub enum Message<G, S, M> {
 /// - `M` represents the messages that are sent to the property inspector.
 ///
 /// [Official Documentation](https://developer.elgato.com/documentation/stream-deck/sdk/events-sent/)
-#[derive(Debug, Serialize)]
+#[derive(Debug, Deserialize, Serialize)]
 #[serde(tag = "event", rename_all = "camelCase")]
 pub enum MessageOut<G, S, M> {
     /// Set the title of an action instance.
@@ -340,33 +341,21 @@ pub enum MessageOut<G, S, M> {
 }
 
 /// The target of a command.
-#[derive(Debug)]
+#[derive(Debug, Deserialize_repr, Serialize_repr)]
+#[repr(u8)]
 pub enum Target {
     /// Both the device and a the display within the Stream Deck software.
-    Both, // 0
+    Both = 0,
     /// Only the device.
-    Hardware, // 1
+    Hardware = 1,
     /// Only the display within the Stream Deck software.
-    Software, // 2
-}
-
-impl ser::Serialize for Target {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: ser::Serializer,
-    {
-        serializer.serialize_u8(match self {
-            Target::Both => 0,
-            Target::Hardware => 1,
-            Target::Software => 2,
-        })
-    }
+    Software = 2,
 }
 
 /// The title to set as part of a [SetTitle](enum.MessageOut.html#variant.SetTitle) message.
 ///
 /// [Official Documentation](https://developer.elgato.com/documentation/stream-deck/sdk/events-sent/#settitle)
-#[derive(Debug, Serialize)]
+#[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct TitlePayload {
     /// The new title.
@@ -378,7 +367,7 @@ pub struct TitlePayload {
 /// The image to set as part of a [SetImage](enum.MessageOut.html#variant.SetImage) message.
 ///
 /// [Official Documentation](https://developer.elgato.com/documentation/stream-deck/sdk/events-sent/#setimage)
-#[derive(Debug, Serialize)]
+#[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ImagePayload {
     /// An image in the form of a data URI.
@@ -390,7 +379,7 @@ pub struct ImagePayload {
 /// The state to set as part of a [SetState](enum.MessageOut.html#variant.SetState) message.
 ///
 /// [Official Documentation](https://developer.elgato.com/documentation/stream-deck/sdk/events-sent/#setstate)
-#[derive(Debug, Serialize)]
+#[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct StatePayload {
     /// The new state.
@@ -400,7 +389,7 @@ pub struct StatePayload {
 /// The profile to activate as part of a [SwitchToProfile](enum.MessageOut.html#variant.SwitchToProfile) message.
 ///
 /// [Official Documentation](https://developer.elgato.com/documentation/stream-deck/sdk/events-sent/#SwitchToProfile)
-#[derive(Debug, Serialize)]
+#[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ProfilePayload {
     /// The name of the profile to activate.
@@ -410,7 +399,7 @@ pub struct ProfilePayload {
 /// The URL to launch as part of a [OpenUrl](enum.MessageOut.html#variant.OpenUrl) message.
 ///
 /// [Official Documentation](https://developer.elgato.com/documentation/stream-deck/sdk/events-sent/#openurl)
-#[derive(Debug, Serialize)]
+#[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct UrlPayload {
     /// The URL to launch.
@@ -418,7 +407,7 @@ pub struct UrlPayload {
 }
 
 /// Additional information about the key pressed.
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct KeyPayload<S> {
     /// The stored settings for the action instance.
@@ -433,7 +422,7 @@ pub struct KeyPayload<S> {
 }
 
 /// Additional information about a key's appearance.
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct VisibilityPayload<S> {
     /// The stored settings for the action instance.
@@ -446,7 +435,7 @@ pub struct VisibilityPayload<S> {
 }
 
 /// The new title of a key.
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct TitleParametersPayload<S> {
     /// The stored settings for the action instance.
@@ -462,7 +451,7 @@ pub struct TitleParametersPayload<S> {
 }
 
 /// The new global settings.
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct GlobalSettingsPayload<G> {
     /// The stored settings for the plugin.
@@ -470,7 +459,7 @@ pub struct GlobalSettingsPayload<G> {
 }
 
 /// A log message.
-#[derive(Debug, Serialize)]
+#[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LogMessagePayload {
     /// The log message text.
@@ -480,7 +469,7 @@ pub struct LogMessagePayload {
 /// Information about a hardware device.
 ///
 /// [Official Documentation](https://developer.elgato.com/documentation/stream-deck/sdk/events-received/#devicedidconnect)
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct DeviceInfo {
     /// The user-provided name of the device.
@@ -495,7 +484,7 @@ pub struct DeviceInfo {
 }
 
 /// Information about a monitored application that has launched or terminated.
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ApplicationPayload {
     /// The name of the application.
@@ -505,7 +494,7 @@ pub struct ApplicationPayload {
 /// The location of a key on a device.
 ///
 /// Locations are specified using zero-indexed values starting from the top left corner of the device.
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Coordinates {
     /// The x coordinate of the key.
@@ -517,7 +506,7 @@ pub struct Coordinates {
 /// The vertical alignment of a title.
 ///
 /// Titles are always centered horizontally.
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub enum Alignment {
     /// The title should appear at the top of the key.
@@ -531,7 +520,7 @@ pub enum Alignment {
 /// Style information for a title.
 ///
 /// [Official Documentation](https://developer.elgato.com/documentation/stream-deck/sdk/events-received/#titleparametersdidchange)
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct TitleParameters {
     /// The name of the font family.
@@ -551,7 +540,7 @@ pub struct TitleParameters {
 }
 
 /// The size of a device in keys.
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct DeviceSize {
     /// The number of key columns on the device.
@@ -591,6 +580,24 @@ pub enum DeviceType {
     CorsairVoyager,
     /// A device not documented in the 5.3 SDK.
     Unknown(u64),
+}
+
+impl ser::Serialize for DeviceType {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: ser::Serializer,
+    {
+        serializer.serialize_u64(match self {
+            DeviceType::StreamDeck => 0,
+            DeviceType::StreamDeckMini => 1,
+            DeviceType::StreamDeckXl => 2,
+            DeviceType::StreamDeckMobile => 3,
+            DeviceType::CorsairGKeys => 4,
+            DeviceType::StreamDeckPedal => 5,
+            DeviceType::CorsairVoyager => 6,
+            DeviceType::Unknown(value) => *value,
+        })
+    }
 }
 
 impl<'de> de::Deserialize<'de> for DeviceType {
