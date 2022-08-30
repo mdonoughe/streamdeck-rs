@@ -1,7 +1,7 @@
-use super::{DeviceSize, DeviceType};
+use super::{Color, DeviceSize, DeviceType};
 use failure::Fail;
 use serde::de;
-use serde_derive::Deserialize;
+use serde_derive::{Deserialize, Serialize};
 use std::fmt;
 use std::str::FromStr;
 
@@ -122,6 +122,18 @@ pub struct RegistrationInfoApplication {
     pub version: String,
 }
 
+/// The user's preferred colors
+#[derive(Deserialize, Serialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct UserColors {
+    button_pressed_background_color: Option<Color>,
+    button_pressed_border_color: Option<Color>,
+    button_pressed_text_color: Option<Color>,
+    disabled_color: Option<Color>,
+    highlight_color: Option<Color>,
+    mouse_down_color: Option<Color>,
+}
+
 /// Information about the environment the plugin is being loaded into.
 ///
 /// [Official Documentation](https://developer.elgato.com/documentation/stream-deck/sdk/registration-procedure/#info-parameter)
@@ -131,6 +143,7 @@ pub struct RegistrationInfo {
     pub application: RegistrationInfoApplication,
     pub device_pixel_ratio: u8,
     pub devices: Vec<RegistrationInfoDevice>,
+    pub colors: UserColors,
 }
 
 /// Registration parameters provided to the plugin on startup.
