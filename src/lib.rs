@@ -577,8 +577,12 @@ pub enum DeviceType {
     /// The [Corsair Voyager Streaming Laptop](https://www.corsair.com/us/en/voyager-a1600-gaming-streaming-pc-laptop).
     ///
     /// Added in Stream Deck software version 5.3
-    CorsairVoyager,
-    /// A device not documented in the 5.3 SDK.
+    CorsairVoyager, // 6
+    /// The [Stream Deck +](https://www.elgato.com/en/stream-deck-plus)
+    ///
+    /// Added in Stream Deck software version 6.0
+    StreamDeckPlus, // 7
+    /// A device not documented in the 6.0 SDK.
     Unknown(u64),
 }
 
@@ -595,6 +599,7 @@ impl ser::Serialize for DeviceType {
             DeviceType::CorsairGKeys => 4,
             DeviceType::StreamDeckPedal => 5,
             DeviceType::CorsairVoyager => 6,
+            DeviceType::StreamDeckPlus => 7,
             DeviceType::Unknown(value) => *value,
         })
     }
@@ -626,6 +631,7 @@ impl<'de> de::Deserialize<'de> for DeviceType {
                     4 => DeviceType::CorsairGKeys,
                     5 => DeviceType::StreamDeckPedal,
                     6 => DeviceType::CorsairVoyager,
+                    7 => DeviceType::StreamDeckPlus,
                     value => DeviceType::Unknown(value),
                 })
             }
