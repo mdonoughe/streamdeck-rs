@@ -30,7 +30,7 @@ impl<G, S, M> Drain for StreamDeckDrain<G, S, M> {
         let kv_len = serializer.stack.iter().fold(0, |a, b| a + b.len() + 2);
         message.reserve_exact(kv_len);
         while let Some(value) = serializer.stack.pop() {
-            write!(message, ", {}", value).unwrap()
+            write!(message, ", {value}").unwrap()
         }
 
         self.sink
@@ -48,75 +48,75 @@ struct Serializer {
 
 impl slog::Serializer for Serializer {
     fn emit_none(&mut self, key: Key) -> slog::Result {
-        self.stack.push(format!("{}: None", key));
+        self.stack.push(format!("{key}: None"));
         Ok(())
     }
     fn emit_unit(&mut self, key: Key) -> slog::Result {
-        self.stack.push(format!("{}: ()", key));
+        self.stack.push(format!("{key}: ()"));
         Ok(())
     }
     fn emit_bool(&mut self, key: Key, val: bool) -> slog::Result {
-        self.stack.push(format!("{}: {}", key, val));
+        self.stack.push(format!("{key}: {val}"));
         Ok(())
     }
     fn emit_char(&mut self, key: Key, val: char) -> slog::Result {
-        self.stack.push(format!("{}: {}", key, val));
+        self.stack.push(format!("{key}: {val}"));
         Ok(())
     }
     fn emit_usize(&mut self, key: Key, val: usize) -> slog::Result {
-        self.stack.push(format!("{}: {}", key, val));
+        self.stack.push(format!("{key}: {val}"));
         Ok(())
     }
     fn emit_isize(&mut self, key: Key, val: isize) -> slog::Result {
-        self.stack.push(format!("{}: {}", key, val));
+        self.stack.push(format!("{key}: {val}"));
         Ok(())
     }
     fn emit_u8(&mut self, key: Key, val: u8) -> slog::Result {
-        self.stack.push(format!("{}: {}", key, val));
+        self.stack.push(format!("{key}: {val}"));
         Ok(())
     }
     fn emit_i8(&mut self, key: Key, val: i8) -> slog::Result {
-        self.stack.push(format!("{}: {}", key, val));
+        self.stack.push(format!("{key}: {val}"));
         Ok(())
     }
     fn emit_u16(&mut self, key: Key, val: u16) -> slog::Result {
-        self.stack.push(format!("{}: {}", key, val));
+        self.stack.push(format!("{key}: {val}"));
         Ok(())
     }
     fn emit_i16(&mut self, key: Key, val: i16) -> slog::Result {
-        self.stack.push(format!("{}: {}", key, val));
+        self.stack.push(format!("{key}: {val}"));
         Ok(())
     }
     fn emit_u32(&mut self, key: Key, val: u32) -> slog::Result {
-        self.stack.push(format!("{}: {}", key, val));
+        self.stack.push(format!("{key}: {val}"));
         Ok(())
     }
     fn emit_i32(&mut self, key: Key, val: i32) -> slog::Result {
-        self.stack.push(format!("{}: {}", key, val));
+        self.stack.push(format!("{key}: {val}"));
         Ok(())
     }
     fn emit_f32(&mut self, key: Key, val: f32) -> slog::Result {
-        self.stack.push(format!("{}: {}", key, val));
+        self.stack.push(format!("{key}: {val}"));
         Ok(())
     }
     fn emit_u64(&mut self, key: Key, val: u64) -> slog::Result {
-        self.stack.push(format!("{}: {}", key, val));
+        self.stack.push(format!("{key}: {val}"));
         Ok(())
     }
     fn emit_i64(&mut self, key: Key, val: i64) -> slog::Result {
-        self.stack.push(format!("{}: {}", key, val));
+        self.stack.push(format!("{key}: {val}"));
         Ok(())
     }
     fn emit_f64(&mut self, key: Key, val: f64) -> slog::Result {
-        self.stack.push(format!("{}: {}", key, val));
+        self.stack.push(format!("{key}: {val}"));
         Ok(())
     }
     fn emit_str(&mut self, key: Key, val: &str) -> slog::Result {
-        self.stack.push(format!("{}: {}", key, val));
+        self.stack.push(format!("{key}: {val}"));
         Ok(())
     }
     fn emit_arguments(&mut self, key: Key, val: &fmt::Arguments) -> slog::Result {
-        self.stack.push(format!("{}: {}", key, val));
+        self.stack.push(format!("{key}: {val}"));
         Ok(())
     }
 }
