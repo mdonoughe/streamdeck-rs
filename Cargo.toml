@@ -1,6 +1,6 @@
 [package]
 name = "streamdeck-rs"
-version = "0.5.0"
+version = "0.6.0"
 authors = ["Matthew Donoughe <mdonoughe@gmail.com>"]
 description = "Unofficial Stream Deck SDK for Rust"
 repository = "https://github.com/mdonoughe/streamdeck-rs/"
