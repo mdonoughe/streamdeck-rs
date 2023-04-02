@@ -646,3 +646,90 @@ impl<'de> de::Deserialize<'de> for DeviceType {
         deserializer.deserialize_u64(Visitor)
     }
 }
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct Color {
+    r: u8,
+    g: u8,
+    b: u8,
+}
+
+impl ser::Serialize for Color {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: ser::Serializer,
+    {
+        let html_color = format!("#{:02x}{:02x}{:02x}", self.r, self.g, self.b);
+        serializer.serialize_str(&html_color)
+    }
+}
+
+impl<'de> de::Deserialize<'de> for Color {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: de::Deserializer<'de>,
+    {
+        struct Visitor;
+
+        impl<'de> de::Visitor<'de> for Visitor {
+            type Value = Color;
+
+            fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+                formatter.write_str("a hex color")
+            }
+
+            fn visit_str<E>(self, value: &str) -> Result<Color, E>
+            where
+                E: de::Error,
+            {
+                if value.len() != 7 {
+                    return Err(E::invalid_length(value.len(), &self));
+                }
+
+                if &value[0..1] != "#" {
+                    return Err(E::custom("expected string to begin with '#'"));
+                }
+
+                let r = u8::from_str_radix(&value[1..3], 16)
+                    .map_err(|_| E::invalid_value(de::Unexpected::Str(value), &self))?;
+                let g = u8::from_str_radix(&value[3..5], 16)
+                    .map_err(|_| E::invalid_value(de::Unexpected::Str(value), &self))?;
+                let b = u8::from_str_radix(&value[5..7], 16)
+                    .map_err(|_| E::invalid_value(de::Unexpected::Str(value), &self))?;
+
+                Ok(Color { r, g, b })
+            }
+        }
+
+        deserializer.deserialize_str(Visitor)
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::Color;
+
+    #[test]
+    fn color() {
+        let color_a = Color {
+            r: 0x12,
+            g: 0x34,
+            b: 0x56,
+        };
+        let color_b = Color {
+            r: 0x12,
+            g: 0x12,
+            b: 0x12,
+        };
+
+        let as_json = r##"["#123456","#121212"]"##;
+        let colors: Vec<Color> = serde_json::from_str(as_json).expect("array of colors");
+
+        assert_eq!(2, colors.len());
+        assert_eq!(color_a, colors[0]);
+        assert_eq!(color_b, colors[1]);
+
+        let json_str: String = serde_json::to_string(&vec![color_a, color_b]).expect("JSON array");
+        assert_eq!(as_json, json_str);
+    }
+}
