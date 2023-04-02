@@ -6,13 +6,22 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 ### Added
+- Device types from Stream Deck software version 5.2 are back.
 - All the message structs now have both `Serialize` and `Deserialize`
 - Device types from Stream Deck software version 6.0 (Stream Deck +).
+- The title and image can now be set for particular states.
+- The user's preferred colors are now included in the registration info.
 
+## [0.6.0] - 2023-02-05
+### Removed
+- Device types from Stream Deck software version 5.2 were accidentally removed from this version.
 
 ## [0.5.1] - 2022-08-13
 ### Added
 - Device types from Stream Deck software version 5.2.
+
+### Changed
+- Updated to Tokio 1.5.
 
 ## [0.5.0] - 2020-05-16
 ### Changed
@@ -41,7 +50,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Command line parsing.
 - Protocol for registration and message handling.
 
-[Unreleased]: https://github.com/mdonoughe/streamdeck-rs/compare/v0.5.1...HEAD
+[Unreleased]: https://github.com/mdonoughe/streamdeck-rs/compare/v0.6.0...HEAD
+[0.6.0]: https://github.com/mdonoughe/streamdeck-rs/compare/v0.5.1...v0.6.0
 [0.5.1]: https://github.com/mdonoughe/streamdeck-rs/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/mdonoughe/streamdeck-rs/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/mdonoughe/streamdeck-rs/compare/v0.3.0...v0.4.0
