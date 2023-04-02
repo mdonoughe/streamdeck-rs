@@ -362,6 +362,9 @@ pub struct TitlePayload {
     pub title: Option<String>,
     /// The target displays.
     pub target: Target,
+    /// The state to set the title for. If not set, it is set for all states.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub state: Option<u8>,
 }
 
 /// The image to set as part of a [SetImage](enum.MessageOut.html#variant.SetImage) message.
@@ -374,6 +377,9 @@ pub struct ImagePayload {
     pub image: Option<String>,
     /// The target displays.
     pub target: Target,
+    /// The state to set the image for. If not set, it is set for all states.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub state: Option<u8>,
 }
 
 /// The state to set as part of a [SetState](enum.MessageOut.html#variant.SetState) message.
