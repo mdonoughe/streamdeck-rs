@@ -159,15 +159,15 @@ pub struct RegistrationInfoApplication {
 }
 
 /// The user's preferred colors
-#[derive(Deserialize, Serialize, Debug)]
+#[derive(Clone, Deserialize, Serialize, Debug, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct UserColors {
-    button_pressed_background_color: Option<Color>,
-    button_pressed_border_color: Option<Color>,
-    button_pressed_text_color: Option<Color>,
-    disabled_color: Option<Color>,
-    highlight_color: Option<Color>,
-    mouse_down_color: Option<Color>,
+    pub button_pressed_background_color: Option<Color>,
+    pub button_pressed_border_color: Option<Color>,
+    pub button_pressed_text_color: Option<Color>,
+    pub disabled_color: Option<Color>,
+    pub highlight_color: Option<Color>,
+    pub mouse_down_color: Option<Color>,
 }
 
 /// Information about the environment the plugin is being loaded into.
