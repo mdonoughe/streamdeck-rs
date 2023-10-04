@@ -1,5 +1,6 @@
 #[cfg(feature = "logging")]
 pub mod logging;
+pub mod property_inspector;
 pub mod registration;
 pub mod socket;
 
