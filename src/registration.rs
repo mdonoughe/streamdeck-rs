@@ -122,6 +122,18 @@ pub struct RegistrationInfoApplication {
     pub version: String,
 }
 
+/// Information about the plugin
+///
+/// [Official Documentation](https://developer.elgato.com/documentation/stream-deck/sdk/registration-procedure/#info-parameter)
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct RegistrationInfoPlugin {
+    /// Version of the plugin as per the manifest
+    pub version: String,
+    /// Unique identifier of the plugin
+    pub uuid: String,
+}
+
 /// The user's preferred colors
 #[derive(Deserialize, Serialize, Debug)]
 #[serde(rename_all = "camelCase")]
@@ -141,6 +153,7 @@ pub struct UserColors {
 #[serde(rename_all = "camelCase")]
 pub struct RegistrationInfo {
     pub application: RegistrationInfoApplication,
+    pub plugin: RegistrationInfoPlugin,
     pub device_pixel_ratio: u8,
     pub devices: Vec<RegistrationInfoDevice>,
     pub colors: UserColors,
