@@ -1,6 +1,6 @@
 use super::{Color, DeviceSize, DeviceType};
 use failure::Fail;
-use serde::de;
+use serde::{de, ser};
 use serde_derive::{Deserialize, Serialize};
 use std::fmt;
 use std::str::FromStr;
@@ -8,7 +8,7 @@ use std::str::FromStr;
 /// Information about a connected device.
 ///
 /// [Official Documentation](https://developer.elgato.com/documentation/stream-deck/sdk/registration-procedure/#info-parameter)
-#[derive(Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct RegistrationInfoDevice {
     /// The ID of the specific device.
     pub id: String,
@@ -26,6 +26,7 @@ pub struct RegistrationInfoDevice {
 /// The language the Stream Deck software is running in.
 ///
 /// [Official Documentation](https://developer.elgato.com/documentation/stream-deck/sdk/registration-procedure/#Info-parameter)
+#[derive(Debug)]
 pub enum Language {
     English,
     French,
@@ -72,7 +73,27 @@ impl<'de> de::Deserialize<'de> for Language {
     }
 }
 
+impl ser::Serialize for Language {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: ser::Serializer,
+    {
+        let lang = match self {
+            Language::English => "en",
+            Language::French => "fr",
+            Language::German => "de",
+            Language::Spanish => "es",
+            Language::Japanese => "ja",
+            Language::ChineseChina => "zh_cn",
+            Language::Unknown(value) => value,
+        };
+
+        serializer.serialize_str(lang)
+    }
+}
+
 /// The platform on which the Stream Deck software is running.
+#[derive(Debug)]
 pub enum Platform {
     /// Mac OS X
     Mac,
@@ -80,6 +101,21 @@ pub enum Platform {
     Windows,
     /// A platform not documented in the 4.0.0 SDK.
     Unknown(String),
+}
+
+impl ser::Serialize for Platform {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: ser::Serializer,
+    {
+        let platform = match self {
+            Platform::Mac => "mac",
+            Platform::Windows => "windows",
+            Platform::Unknown(s) => s,
+        };
+
+        serializer.serialize_str(platform)
+    }
 }
 
 impl<'de: 'a, 'a> de::Deserialize<'de> for Platform {
@@ -115,7 +151,7 @@ impl<'de: 'a, 'a> de::Deserialize<'de> for Platform {
 /// Information about the Stream Deck software.
 ///
 /// [Official Documentation](https://developer.elgato.com/documentation/stream-deck/sdk/registration-procedure/#info-parameter)
-#[derive(Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct RegistrationInfoApplication {
     pub language: Language,
     pub platform: Platform,
@@ -135,21 +171,21 @@ pub struct RegistrationInfoPlugin {
 }
 
 /// The user's preferred colors
-#[derive(Deserialize, Serialize, Debug)]
+#[derive(Clone, Deserialize, Serialize, Debug, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct UserColors {
-    button_pressed_background_color: Option<Color>,
-    button_pressed_border_color: Option<Color>,
-    button_pressed_text_color: Option<Color>,
-    disabled_color: Option<Color>,
-    highlight_color: Option<Color>,
-    mouse_down_color: Option<Color>,
+    pub button_pressed_background_color: Option<Color>,
+    pub button_pressed_border_color: Option<Color>,
+    pub button_pressed_text_color: Option<Color>,
+    pub disabled_color: Option<Color>,
+    pub highlight_color: Option<Color>,
+    pub mouse_down_color: Option<Color>,
 }
 
 /// Information about the environment the plugin is being loaded into.
 ///
 /// [Official Documentation](https://developer.elgato.com/documentation/stream-deck/sdk/registration-procedure/#info-parameter)
-#[derive(Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct RegistrationInfo {
     pub application: RegistrationInfoApplication,
