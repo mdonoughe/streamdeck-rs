@@ -8,6 +8,7 @@ pub use crate::socket::StreamDeckSocket;
 
 use serde::{de, ser};
 use serde_derive::{Deserialize, Serialize};
+use serde_json::Value;
 use serde_repr::{Deserialize_repr, Serialize_repr};
 use std::fmt;
 
@@ -195,6 +196,67 @@ pub enum Message<G, S, M> {
     ///
     /// [Official Documentation](https://docs.elgato.com/sdk/plugins/events-received/#systemdidwakeup)
     SystemDidWakeUp,
+
+    /// The touchscreen has been tapped.
+    ///
+    /// [Official Documentation](https://docs.elgato.com/sdk/plugins/events-received#touchtap-sd)
+    #[serde(rename_all = "camelCase")]
+    TouchTap {
+        /// The uuid of the action.
+        action: String,
+        /// The instance of the action (key or part of a multiaction).
+        context: String,
+        /// The device where the action exists.
+        device: String,
+        /// Additional information about the touch event.
+        payload: TouchTapPayload<S>,
+    },
+
+    /// An encoder has been pressed.
+    ///
+    /// [Official Documentation](https://docs.elgato.com/sdk/plugins/events-received#dialdown-sd)
+    #[serde(rename_all = "camelCase")]
+    DialDown {
+        /// The uuid of the action.
+        action: String,
+        /// The instance of the action (key or part of a multiaction).
+        context: String,
+        /// The device where the action exists.
+        device: String,
+        /// Additional information about the press event.
+        payload: DialDownPayload<S>,
+    },
+
+    /// An encoder has been released.
+    ///
+    /// [Official Documentation](https://docs.elgato.com/sdk/plugins/events-received#dialup-sd)
+    #[serde(rename_all = "camelCase")]
+    DialUp {
+        /// The uuid of the action.
+        action: String,
+        /// The instance of the action (key or part of a multiaction).
+        context: String,
+        /// The device where the action exists.
+        device: String,
+        /// Additional information about the release event.
+        payload: DialUpPayload<S>,
+    },
+
+    /// An encoder has been rotated.
+    ///
+    /// [Official Documentation](https://docs.elgato.com/sdk/plugins/events-received#dialrotate-sd)
+    #[serde(rename_all = "camelCase")]
+    DialRotate {
+        /// The uuid of the action.
+        action: String,
+        /// The instance of the action (key or part of a multiaction).
+        context: String,
+        /// The device where the action exists.
+        device: String,
+        /// Additional information about the rotate event.
+        payload: DialRotatePayload<S>,
+    },
+
     /// An event from an unsupported version of the Stream Deck software.
     ///
     /// This occurs when the Stream Deck software sends an event that is not
@@ -338,6 +400,36 @@ pub enum MessageOut<G, S, M> {
         /// The message to log.
         payload: LogMessagePayload,
     },
+    /// Set feedback.
+    ///
+    /// [Official Documentation](https://docs.elgato.com/sdk/plugins/events-sent/#setfeedback-sd)
+    #[serde(rename_all = "camelCase")]
+    SetFeedback {
+        /// The instance of the action (key or part of a multiaction).
+        context: String,
+        /// The data to send to the display.
+        payload: Value,
+    },
+    /// Set feedback layout.
+    ///
+    /// [Official Documentation](https://docs.elgato.com/sdk/plugins/events-sent/#setfeedbacklayout-sd)
+    #[serde(rename_all = "camelCase")]
+    SetFeedbackLayout {
+        /// The instance of the action (key or part of a multiaction).
+        context: String,
+        /// The data to send to the display.
+        payload: SetFeedbackLayoutPayload,
+    },
+    /// Set trigger description.
+    ///
+    /// [Official Documentation](https://docs.elgato.com/sdk/plugins/events-sent/#settriggerdescription-sd)
+    #[serde(rename_all = "camelCase")]
+    SetTriggerDescription {
+        /// The instance of the action (key or part of a multiaction).
+        context: String,
+        /// The data to send to the display.
+        payload: SetTriggerDescriptionPayload,
+    },
 }
 
 /// The target of a command.
@@ -470,6 +562,88 @@ pub struct GlobalSettingsPayload<G> {
 pub struct LogMessagePayload {
     /// The log message text.
     pub message: String,
+}
+
+/// A layout update message.
+///
+/// [Official Documentation](https://docs.elgato.com/sdk/plugins/events-sent#setfeedbacklayout-sd)
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SetFeedbackLayoutPayload {
+    /// A predefined layout identifier or the relative path to a JSON file that contains a custom layout.
+    pub layout: String,
+}
+
+/// A trigger description update message.
+///
+/// [Official Documentation](https://docs.elgato.com/sdk/plugins/events-sent#settriggerdescription-sd)
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SetTriggerDescriptionPayload {
+    /// A value that describes the long-touch interaction with the touch display.
+    pub long_touch: Option<String>,
+    /// A value that describes the push interaction with the dial.
+    pub push: Option<String>,
+    /// A value that describes the rotate interaction with the dial.
+    pub rotate: Option<String>,
+    /// A value that describes the touch interaction with the touch display.
+    pub touch: Option<String>,
+}
+
+/// Additional information about a touch tap event.
+///
+/// [Official Documentation](https://docs.elgato.com/sdk/plugins/events-received#touchtap-sd)
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct TouchTapPayload<S> {
+    /// The stored settings for the action instance.
+    pub settings: S,
+    /// The location of the action triggered.
+    pub coordinates: Option<Coordinates>,
+    /// The coordinates of the touch event within the LCD slot associated with the action.
+    pub tap_pos: (u8, u8),
+    /// Whether the tap was long.
+    pub hold: bool,
+}
+
+/// Additional information about an encoder press event.
+///
+/// [Official Documentation](https://docs.elgato.com/sdk/plugins/events-received#dialdown-sd)
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct DialDownPayload<S> {
+    /// The stored settings for the action instance.
+    pub settings: S,
+    /// The location of the action triggered.
+    pub coordinates: Option<Coordinates>,
+}
+
+/// Additional information about an encoder release event.
+///
+/// [Official Documentation](https://docs.elgato.com/sdk/plugins/events-received#dialup-sd)
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct DialUpPayload<S> {
+    /// The stored settings for the action instance.
+    pub settings: S,
+    /// The location of the action triggered.
+    pub coordinates: Option<Coordinates>,
+}
+
+/// Additional information about an encoder rotate event.
+///
+/// [Official Documentation](https://docs.elgato.com/sdk/plugins/events-received#dialrotate-sd)
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct DialRotatePayload<S> {
+    /// The stored settings for the action instance.
+    pub settings: S,
+    /// The location of the action triggered.
+    pub coordinates: Option<Coordinates>,
+    /// The number of ticks of the rotation (positive values are clockwise).
+    pub ticks: i64,
+    /// Whether the encoder was being pressed down during the rotation.
+    pub pressed: bool,
 }
 
 /// Information about a hardware device.
