@@ -17,13 +17,13 @@ use std::fmt;
 /// - `S` represents the settings that are persisted within the Stream Deck software.
 /// - `M` represents the messages that are received from the property inspector.
 ///
-/// [Official Documentation](https://developer.elgato.com/documentation/stream-deck/sdk/events-received/)
+/// [Official Documentation](https://docs.elgato.com/sdk/plugins/events-received/)
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(tag = "event", rename_all = "camelCase")]
 pub enum Message<G, S, M> {
     /// A key has been pressed.
     ///
-    /// [Official Documentation](https://developer.elgato.com/documentation/stream-deck/sdk/events-received/#keydown)
+    /// [Official Documentation](https://docs.elgato.com/sdk/plugins/events-received/#keydown)
     #[serde(rename_all = "camelCase")]
     KeyDown {
         /// The uuid of the action.
@@ -37,7 +37,7 @@ pub enum Message<G, S, M> {
     },
     /// A key has been released.
     ///
-    /// [Official Documentation](https://developer.elgato.com/documentation/stream-deck/sdk/events-received/#keyup)
+    /// [Official Documentation](https://docs.elgato.com/sdk/plugins/events-received/#keyup)
     #[serde(rename_all = "camelCase")]
     KeyUp {
         /// The uuid of the action.
@@ -51,7 +51,7 @@ pub enum Message<G, S, M> {
     },
     /// An instance of the action has been added to the display.
     ///
-    /// [Official Documentation](https://developer.elgato.com/documentation/stream-deck/sdk/events-received/#willappear)
+    /// [Official Documentation](https://docs.elgato.com/sdk/plugins/events-received/#willappear)
     #[serde(rename_all = "camelCase")]
     WillAppear {
         /// The uuid of the action.
@@ -65,7 +65,7 @@ pub enum Message<G, S, M> {
     },
     /// An instance of the action has been removed from the display.
     ///
-    /// [Official Documentation](https://developer.elgato.com/documentation/stream-deck/sdk/events-received/#willdisappear)
+    /// [Official Documentation](https://docs.elgato.com/sdk/plugins/events-received/#willdisappear)
     #[serde(rename_all = "camelCase")]
     WillDisappear {
         /// The uuid of the action.
@@ -79,7 +79,7 @@ pub enum Message<G, S, M> {
     },
     /// The title has changed for an instance of an action.
     ///
-    /// [Official Documentation](https://developer.elgato.com/documentation/stream-deck/sdk/events-received/#titleparametersdidchange)
+    /// [Official Documentation](https://docs.elgato.com/sdk/plugins/events-received/#titleparametersdidchange)
     #[serde(rename_all = "camelCase")]
     TitleParametersDidChange {
         /// The uuid of the action.
@@ -93,7 +93,7 @@ pub enum Message<G, S, M> {
     },
     /// A device has connected.
     ///
-    /// [Official Documentation](https://developer.elgato.com/documentation/stream-deck/sdk/events-received/#devicedidconnect)
+    /// [Official Documentation](https://docs.elgato.com/sdk/plugins/events-received/#devicedidconnect)
     #[serde(rename_all = "camelCase")]
     DeviceDidConnect {
         /// The ID of the device that has connected.
@@ -103,7 +103,7 @@ pub enum Message<G, S, M> {
     },
     /// A device has disconnected.
     ///
-    /// [Official Documentation](https://developer.elgato.com/documentation/stream-deck/sdk/events-received/#devicediddisconnect)
+    /// [Official Documentation](https://docs.elgato.com/sdk/plugins/events-received/#devicediddisconnect)
     #[serde(rename_all = "camelCase")]
     DeviceDidDisconnect {
         /// The ID of the device that has disconnected.
@@ -111,7 +111,7 @@ pub enum Message<G, S, M> {
     },
     /// An application monitored by the manifest file has launched.
     ///
-    /// [Official Documentation](https://developer.elgato.com/documentation/stream-deck/sdk/events-received/#applicationdidlaunch)
+    /// [Official Documentation](https://docs.elgato.com/sdk/plugins/events-received/#applicationdidlaunch)
     #[serde(rename_all = "camelCase")]
     ApplicationDidLaunch {
         /// Information about the launched application.
@@ -119,7 +119,7 @@ pub enum Message<G, S, M> {
     },
     /// An application monitored by the manifest file has terminated.
     ///
-    /// [Official Documentation](https://developer.elgato.com/documentation/stream-deck/sdk/events-received/#applicationdidterminate)
+    /// [Official Documentation](https://docs.elgato.com/sdk/plugins/events-received/#applicationdidterminate)
     #[serde(rename_all = "camelCase")]
     ApplicationDidTerminate {
         /// Information about the terminated application.
@@ -127,7 +127,7 @@ pub enum Message<G, S, M> {
     },
     /// The property inspector has sent data.
     ///
-    /// [Official Documentation](https://developer.elgato.com/documentation/stream-deck/sdk/events-received/#sendtoplugin)
+    /// [Official Documentation](https://docs.elgato.com/sdk/plugins/events-received/#sendtoplugin)
     #[serde(rename_all = "camelCase")]
     SendToPlugin {
         /// The uuid of the action.
@@ -142,7 +142,7 @@ pub enum Message<G, S, M> {
     /// This message is sent in response to GetSettings, but also after the
     /// property inspector changes the settings.
     ///
-    /// [Official Documentation](https://developer.elgato.com/documentation/stream-deck/sdk/events-received/#didreceivesettings)
+    /// [Official Documentation](https://docs.elgato.com/sdk/plugins/events-received/#didreceivesettings)
     #[serde(rename_all = "camelCase")]
     DidReceiveSettings {
         /// The uuid of the action.
@@ -156,7 +156,7 @@ pub enum Message<G, S, M> {
     },
     /// The property inspector for an action has become visible.
     ///
-    /// [Official Documentation](https://developer.elgato.com/documentation/stream-deck/sdk/events-received/#propertyinspectordidappear)
+    /// [Official Documentation](https://docs.elgato.com/sdk/plugins/events-received/#propertyinspectordidappear)
     #[serde(rename_all = "camelCase")]
     PropertyInspectorDidAppear {
         /// The uuid of the action.
@@ -168,7 +168,7 @@ pub enum Message<G, S, M> {
     },
     /// The property inspector for an action is no longer visible.
     ///
-    /// [Official Documentation](https://developer.elgato.com/documentation/stream-deck/sdk/events-received/#propertyinspectordiddisappear)
+    /// [Official Documentation](https://docs.elgato.com/sdk/plugins/events-received/#propertyinspectordiddisappear)
     #[serde(rename_all = "camelCase")]
     PropertyInspectorDidDisappear {
         /// The uuid of the action.
@@ -183,7 +183,7 @@ pub enum Message<G, S, M> {
     /// This message is sent in response to GetGlobalSettings, but also after
     /// the property inspector changes the settings.
     ///
-    /// [Official Documentation](https://developer.elgato.com/documentation/stream-deck/sdk/events-received/#didreceiveglobalsettings)
+    /// [Official Documentation](https://docs.elgato.com/sdk/plugins/events-received/#didreceiveglobalsettings)
     #[serde(rename_all = "camelCase")]
     DidReceiveGlobalSettings {
         /// The current settings for the action.
@@ -193,7 +193,7 @@ pub enum Message<G, S, M> {
     ///
     /// Added in Stream Deck software version 4.3.
     ///
-    /// [Official Documentation](https://developer.elgato.com/documentation/stream-deck/sdk/events-received/#systemdidwakeup)
+    /// [Official Documentation](https://docs.elgato.com/sdk/plugins/events-received/#systemdidwakeup)
     SystemDidWakeUp,
     /// An event from an unsupported version of the Stream Deck software.
     ///
@@ -210,13 +210,13 @@ pub enum Message<G, S, M> {
 /// - `S` represents the action settings that are persisted within the Stream Deck software.
 /// - `M` represents the messages that are sent to the property inspector.
 ///
-/// [Official Documentation](https://developer.elgato.com/documentation/stream-deck/sdk/events-sent/)
+/// [Official Documentation](https://docs.elgato.com/sdk/plugins/events-sent/)
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(tag = "event", rename_all = "camelCase")]
 pub enum MessageOut<G, S, M> {
     /// Set the title of an action instance.
     ///
-    /// [Official Documentation](https://developer.elgato.com/documentation/stream-deck/sdk/events-sent/#settitle)
+    /// [Official Documentation](https://docs.elgato.com/sdk/plugins/events-sent/#settitle)
     #[serde(rename_all = "camelCase")]
     SetTitle {
         /// The instance of the action (key or part of a multiaction).
@@ -226,7 +226,7 @@ pub enum MessageOut<G, S, M> {
     },
     /// Set the image of an action instance.
     ///
-    /// [Official Documentation](https://developer.elgato.com/documentation/stream-deck/sdk/events-sent/#setimage)
+    /// [Official Documentation](https://docs.elgato.com/sdk/plugins/events-sent/#setimage)
     #[serde(rename_all = "camelCase")]
     SetImage {
         /// The instance of the action (key or part of a multiaction).
@@ -236,7 +236,7 @@ pub enum MessageOut<G, S, M> {
     },
     /// Temporarily overlay the key image with an alert icon.
     ///
-    /// [Official Documentation](https://developer.elgato.com/documentation/stream-deck/sdk/events-sent/#showalert)
+    /// [Official Documentation](https://docs.elgato.com/sdk/plugins/events-sent/#showalert)
     #[serde(rename_all = "camelCase")]
     ShowAlert {
         /// The instance of the action (key or part of a multiaction).
@@ -244,7 +244,7 @@ pub enum MessageOut<G, S, M> {
     },
     /// Temporarily overlay the key image with a checkmark.
     ///
-    /// [Official Documentation](https://developer.elgato.com/documentation/stream-deck/sdk/events-sent/#showok)
+    /// [Official Documentation](https://docs.elgato.com/sdk/plugins/events-sent/#showok)
     #[serde(rename_all = "camelCase")]
     ShowOk {
         /// The instance of the action (key or part of a multiaction).
@@ -252,7 +252,7 @@ pub enum MessageOut<G, S, M> {
     },
     /// Retrieve settings for an instance of an action via DidReceiveSettings.
     ///
-    /// [Official Documentation](https://developer.elgato.com/documentation/stream-deck/sdk/events-sent/#getsettings)
+    /// [Official Documentation](https://docs.elgato.com/sdk/plugins/events-sent/#getsettings)
     #[serde(rename_all = "camelCase")]
     GetSettings {
         /// The instance of the action (key or part of a multiaction).
@@ -260,7 +260,7 @@ pub enum MessageOut<G, S, M> {
     },
     /// Store settings for an instance of an action.
     ///
-    /// [Official Documentation](https://developer.elgato.com/documentation/stream-deck/sdk/events-sent/#setsettings)
+    /// [Official Documentation](https://docs.elgato.com/sdk/plugins/events-sent/#setsettings)
     #[serde(rename_all = "camelCase")]
     SetSettings {
         /// The instance of the action (key or part of a multiaction).
@@ -272,7 +272,7 @@ pub enum MessageOut<G, S, M> {
     ///
     /// Normally, Stream Deck changes the state of an action automatically when the key is pressed.
     ///
-    /// [Official Documentation](https://developer.elgato.com/documentation/stream-deck/sdk/events-sent/#setstate)
+    /// [Official Documentation](https://docs.elgato.com/sdk/plugins/events-sent/#setstate)
     #[serde(rename_all = "camelCase")]
     SetState {
         /// The instance of the action (key or part of a multiaction).
@@ -282,7 +282,7 @@ pub enum MessageOut<G, S, M> {
     },
     /// Send data to the property inspector.
     ///
-    /// [Official Documentation](https://developer.elgato.com/documentation/stream-deck/sdk/events-sent/#sendtopropertyinspector)
+    /// [Official Documentation](https://docs.elgato.com/sdk/plugins/events-sent/#sendtopropertyinspector)
     #[serde(rename_all = "camelCase")]
     SendToPropertyInspector {
         /// The uuid of the action.
@@ -294,7 +294,7 @@ pub enum MessageOut<G, S, M> {
     },
     /// Select a new profile.
     ///
-    /// [Official Documentation](https://developer.elgato.com/documentation/stream-deck/sdk/events-sent/#switchtoprofile)
+    /// [Official Documentation](https://docs.elgato.com/sdk/plugins/events-sent/#switchtoprofile)
     #[serde(rename_all = "camelCase")]
     SwitchToProfile {
         /// The instance of the action (key or part of a multiaction).
@@ -306,7 +306,7 @@ pub enum MessageOut<G, S, M> {
     },
     /// Open a URL in the default browser.
     ///
-    /// [Official Documentation](https://developer.elgato.com/documentation/stream-deck/sdk/events-sent/#openurl)
+    /// [Official Documentation](https://docs.elgato.com/sdk/plugins/events-sent/#openurl)
     #[serde(rename_all = "camelCase")]
     OpenUrl {
         /// The url to open.
@@ -314,7 +314,7 @@ pub enum MessageOut<G, S, M> {
     },
     /// Retrieve plugin settings for via DidReceiveGlobalSettings.
     ///
-    /// [Official Documentation](https://developer.elgato.com/documentation/stream-deck/sdk/events-sent/#getglobalsettings)
+    /// [Official Documentation](https://docs.elgato.com/sdk/plugins/events-sent/#getglobalsettings)
     #[serde(rename_all = "camelCase")]
     GetGlobalSettings {
         /// The instance of the action (key or part of a multiaction).
@@ -322,7 +322,7 @@ pub enum MessageOut<G, S, M> {
     },
     /// Store plugin settings.
     ///
-    /// [Official Documentation](https://developer.elgato.com/documentation/stream-deck/sdk/events-sent/#setglobalsettings)
+    /// [Official Documentation](https://docs.elgato.com/sdk/plugins/events-sent/#setglobalsettings)
     #[serde(rename_all = "camelCase")]
     SetGlobalSettings {
         /// The instance of the action (key or part of a multiaction).
@@ -332,7 +332,7 @@ pub enum MessageOut<G, S, M> {
     },
     /// Write to the log.
     ///
-    /// [Official Documentation](https://developer.elgato.com/documentation/stream-deck/sdk/events-sent/#logmessage)
+    /// [Official Documentation](https://docs.elgato.com/sdk/plugins/events-sent/#logmessage)
     #[serde(rename_all = "camelCase")]
     LogMessage {
         /// The message to log.
@@ -354,7 +354,7 @@ pub enum Target {
 
 /// The title to set as part of a [SetTitle](enum.MessageOut.html#variant.SetTitle) message.
 ///
-/// [Official Documentation](https://developer.elgato.com/documentation/stream-deck/sdk/events-sent/#settitle)
+/// [Official Documentation](https://docs.elgato.com/sdk/plugins/events-sent/#settitle)
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct TitlePayload {
@@ -369,7 +369,7 @@ pub struct TitlePayload {
 
 /// The image to set as part of a [SetImage](enum.MessageOut.html#variant.SetImage) message.
 ///
-/// [Official Documentation](https://developer.elgato.com/documentation/stream-deck/sdk/events-sent/#setimage)
+/// [Official Documentation](https://docs.elgato.com/sdk/plugins/events-sent/#setimage)
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ImagePayload {
@@ -384,7 +384,7 @@ pub struct ImagePayload {
 
 /// The state to set as part of a [SetState](enum.MessageOut.html#variant.SetState) message.
 ///
-/// [Official Documentation](https://developer.elgato.com/documentation/stream-deck/sdk/events-sent/#setstate)
+/// [Official Documentation](https://docs.elgato.com/sdk/plugins/events-sent/#setstate)
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct StatePayload {
@@ -394,7 +394,7 @@ pub struct StatePayload {
 
 /// The profile to activate as part of a [SwitchToProfile](enum.MessageOut.html#variant.SwitchToProfile) message.
 ///
-/// [Official Documentation](https://developer.elgato.com/documentation/stream-deck/sdk/events-sent/#SwitchToProfile)
+/// [Official Documentation](https://docs.elgato.com/sdk/plugins/events-sent/#SwitchToProfile)
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ProfilePayload {
@@ -404,7 +404,7 @@ pub struct ProfilePayload {
 
 /// The URL to launch as part of a [OpenUrl](enum.MessageOut.html#variant.OpenUrl) message.
 ///
-/// [Official Documentation](https://developer.elgato.com/documentation/stream-deck/sdk/events-sent/#openurl)
+/// [Official Documentation](https://docs.elgato.com/sdk/plugins/events-sent/#openurl)
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct UrlPayload {
@@ -474,7 +474,7 @@ pub struct LogMessagePayload {
 
 /// Information about a hardware device.
 ///
-/// [Official Documentation](https://developer.elgato.com/documentation/stream-deck/sdk/events-received/#devicedidconnect)
+/// [Official Documentation](https://docs.elgato.com/sdk/plugins/events-received/#devicedidconnect)
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct DeviceInfo {
@@ -525,7 +525,7 @@ pub enum Alignment {
 
 /// Style information for a title.
 ///
-/// [Official Documentation](https://developer.elgato.com/documentation/stream-deck/sdk/events-received/#titleparametersdidchange)
+/// [Official Documentation](https://docs.elgato.com/sdk/plugins/events-received/#titleparametersdidchange)
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct TitleParameters {
@@ -557,7 +557,7 @@ pub struct DeviceSize {
 
 /// The type of connected hardware device.
 ///
-/// [Official Documentation](https://developer.elgato.com/documentation/stream-deck/sdk/manifest/#profiles)
+/// [Official Documentation](https://docs.elgato.com/sdk/plugins/manifest/#profiles)
 #[derive(Debug)]
 pub enum DeviceType {
     /// The [Stream Deck](https://www.elgato.com/en/gaming/stream-deck).
