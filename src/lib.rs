@@ -648,10 +648,9 @@ impl<'de> de::Deserialize<'de> for DeviceType {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct Color {
-    r: u8,
-    g: u8,
-    b: u8,
+pub enum Color {
+    Rgb { r: u8, g: u8, b: u8 },
+    Rgba { r: u8, g: u8, b: u8, a: u8 },
 }
 
 impl ser::Serialize for Color {
@@ -659,7 +658,10 @@ impl ser::Serialize for Color {
     where
         S: ser::Serializer,
     {
-        let html_color = format!("#{:02x}{:02x}{:02x}", self.r, self.g, self.b);
+        let html_color = match self {
+            Color::Rgb { r, g, b } => format!("#{:02x}{:02x}{:02x}", r, g, b),
+            Color::Rgba { r, g, b, a } => format!("#{:02x}{:02x}{:02x}{:02x}", r, g, b, a),
+        };
         serializer.serialize_str(&html_color)
     }
 }
@@ -682,22 +684,35 @@ impl<'de> de::Deserialize<'de> for Color {
             where
                 E: de::Error,
             {
-                if value.len() != 7 {
-                    return Err(E::invalid_length(value.len(), &self));
+                let parse_component = |value: &str| {
+                    u8::from_str_radix(value, 16)
+                        .map_err(|_| E::invalid_value(de::Unexpected::Str(value), &self))
+                };
+
+                let parse_rgb = |value: &str| {
+                    if &value[0..1] != "#" {
+                        return Err(E::custom("expected string to begin with '#'"));
+                    }
+
+                    let r = parse_component(&value[1..3])?;
+                    let g = parse_component(&value[3..5])?;
+                    let b = parse_component(&value[5..7])?;
+
+                    Ok((r, g, b))
+                };
+
+                match value.len() {
+                    7 => {
+                        let (r, g, b) = parse_rgb(value)?;
+                        Ok(Color::Rgb { r, g, b })
+                    }
+                    9 => {
+                        let (r, g, b) = parse_rgb(value)?;
+                        let a = parse_component(&value[7..9])?;
+                        Ok(Color::Rgba { r, g, b, a })
+                    }
+                    _ => Err(E::invalid_length(value.len(), &self)),
                 }
-
-                if &value[0..1] != "#" {
-                    return Err(E::custom("expected string to begin with '#'"));
-                }
-
-                let r = u8::from_str_radix(&value[1..3], 16)
-                    .map_err(|_| E::invalid_value(de::Unexpected::Str(value), &self))?;
-                let g = u8::from_str_radix(&value[3..5], 16)
-                    .map_err(|_| E::invalid_value(de::Unexpected::Str(value), &self))?;
-                let b = u8::from_str_radix(&value[5..7], 16)
-                    .map_err(|_| E::invalid_value(de::Unexpected::Str(value), &self))?;
-
-                Ok(Color { r, g, b })
             }
         }
 
@@ -711,18 +726,19 @@ mod test {
 
     #[test]
     fn color() {
-        let color_a = Color {
+        let color_a = Color::Rgb {
             r: 0x12,
             g: 0x34,
             b: 0x56,
         };
-        let color_b = Color {
+        let color_b = Color::Rgba {
             r: 0x12,
             g: 0x12,
             b: 0x12,
+            a: 0x12,
         };
 
-        let as_json = r##"["#123456","#121212"]"##;
+        let as_json = r##"["#123456","#12121212"]"##;
         let colors: Vec<Color> = serde_json::from_str(as_json).expect("array of colors");
 
         assert_eq!(2, colors.len());
