@@ -25,16 +25,19 @@ pub struct RegistrationInfoDevice {
 
 /// The language the Stream Deck software is running in.
 ///
-/// [Official Documentation](https://developer.elgato.com/documentation/stream-deck/sdk/registration-procedure/#Info-parameter)
+/// [Official Documentation](https://docs.elgato.com/streamdeck/sdk/references/websocket/plugin#registrationinfo)
 pub enum Language {
     English,
     French,
     German,
     Spanish,
     Japanese,
-    /// Unlike the other lanuages which are not specifically localized to a country, Chinese is specifically zh-CN.
+    Korean,
+    /// Unlike the other languages which are not specifically localized to a country, Chinese is specifically zh-CN.
     ChineseChina,
-    /// A language that was not documented in the 4.0.0 SDK.
+    /// Traditional Chinese (zh-TW).
+    ChineseTaiwan,
+    /// A language that was not documented in the SDK.
     Unknown(String),
 }
 
@@ -62,7 +65,12 @@ impl<'de> de::Deserialize<'de> for Language {
                     "de" => Language::German,
                     "es" => Language::Spanish,
                     "ja" => Language::Japanese,
+                    // Old lowercase representation used by older SDKs.
                     "zh_cn" => Language::ChineseChina,
+                    // Current documented representations.
+                    "ko" => Language::Korean,
+                    "zh_CN" => Language::ChineseChina,
+                    "zh_TW" => Language::ChineseTaiwan,
                     value => Language::Unknown(value.to_string()),
                 })
             }
@@ -114,11 +122,19 @@ impl<'de: 'a, 'a> de::Deserialize<'de> for Platform {
 
 /// Information about the Stream Deck software.
 ///
-/// [Official Documentation](https://developer.elgato.com/documentation/stream-deck/sdk/registration-procedure/#info-parameter)
+/// [Official Documentation](https://docs.elgato.com/streamdeck/sdk/references/websocket/plugin#registrationinfo)
 #[derive(Deserialize)]
 pub struct RegistrationInfoApplication {
+    /// Font being used by the Stream Deck application.
+    pub font: String,
+    /// Users preferred language; this is used by the Stream Deck application for localization.
     pub language: Language,
+    /// Operating system.
     pub platform: Platform,
+    /// Operating system version, e.g. "10" for Windows 10.
+    #[serde(rename = "platformVersion")]
+    pub platform_version: String,
+    /// Stream Deck application version.
     pub version: String,
 }
 
@@ -135,14 +151,23 @@ pub struct RegistrationInfoPlugin {
 }
 
 /// The user's preferred colors
+///
+/// [Official Documentation](https://docs.elgato.com/streamdeck/sdk/references/websocket/plugin#registrationinfo)
 #[derive(Deserialize, Serialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct UserColors {
+    /// Color that denotes the background of a button that is being moused over.
+    button_mouse_over_background_color: Option<Color>,
+    /// Color that denotes the background of a pressed button.
     button_pressed_background_color: Option<Color>,
+    /// Color that denotes the border of a pressed button.
     button_pressed_border_color: Option<Color>,
+    /// Color that denotes the text of a pressed button.
     button_pressed_text_color: Option<Color>,
-    disabled_color: Option<Color>,
+    /// Color of highlighted text.
     highlight_color: Option<Color>,
+    /// Additional colors used by older SDKs and hosts.
+    disabled_color: Option<Color>,
     mouse_down_color: Option<Color>,
 }
 
@@ -154,7 +179,7 @@ pub struct UserColors {
 pub struct RegistrationInfo {
     pub application: RegistrationInfoApplication,
     pub plugin: RegistrationInfoPlugin,
-    pub device_pixel_ratio: u8,
+    pub device_pixel_ratio: f64,
     pub devices: Vec<RegistrationInfoDevice>,
     pub colors: UserColors,
 }
