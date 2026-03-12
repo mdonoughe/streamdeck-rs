@@ -166,9 +166,6 @@ pub struct UserColors {
     button_pressed_text_color: Option<Color>,
     /// Color of highlighted text.
     highlight_color: Option<Color>,
-    /// Additional colors used by older SDKs and hosts.
-    disabled_color: Option<Color>,
-    mouse_down_color: Option<Color>,
 }
 
 /// Information about the environment the plugin is being loaded into.
