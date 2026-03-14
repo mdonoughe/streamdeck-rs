@@ -1,13 +1,13 @@
 use super::{Message, MessageOut};
-use failure::Fail;
 use futures::prelude::*;
 use serde::{de, ser};
 use serde_derive::Serialize;
 use std::marker::PhantomData;
 use std::pin::Pin;
 use std::task::{Context, Poll};
+use thiserror::Error;
 use tokio::net::TcpStream;
-use tokio_tungstenite::{self, MaybeTlsStream, WebSocketStream};
+use tokio_tungstenite::{self, MaybeTlsStream, WebSocketStream, tungstenite};
 use url::Url;
 
 /// Provides encoding and decoding for messages sent to/from the Stream Deck software.
@@ -55,7 +55,7 @@ impl<G, S, MI, MO> StreamDeckSocket<G, S, MI, MO> {
         })
         .unwrap();
         stream
-            .send(tungstenite::Message::Text(message))
+            .send(tungstenite::Message::Text(message.into()))
             .await
             .map_err(ConnectError::SendError)?;
 
@@ -74,14 +74,14 @@ impl<G, S, MI, MO> StreamDeckSocket<G, S, MI, MO> {
 }
 
 /// Represents an error that occurred reading or writing the web socket.
-#[derive(Debug, Fail)]
+#[derive(Debug, Error)]
 pub enum StreamDeckSocketError {
     /// The web socket reported an error.
-    #[fail(display = "WebSocket error")]
-    WebSocketError(#[fail(cause)] tungstenite::error::Error),
+    #[error("WebSocket error")]
+    WebSocketError(#[from] tungstenite::error::Error),
     /// The message could not be encoded/decoded.
-    #[fail(display = "Bad message")]
-    BadMessage(#[fail(cause)] serde_json::Error),
+    #[error("Bad message")]
+    BadMessage(#[from] serde_json::Error),
 }
 
 impl<G, S, MI, MO> Stream for StreamDeckSocket<G, S, MI, MO>
@@ -106,7 +106,7 @@ where
                 }
                 Poll::Ready(Some(Ok(_))) => {}
                 Poll::Ready(Some(Err(error))) => {
-                    break Poll::Ready(Some(Err(StreamDeckSocketError::WebSocketError(error))))
+                    break Poll::Ready(Some(Err(StreamDeckSocketError::WebSocketError(error))));
                 }
                 Poll::Ready(None) => break Poll::Ready(None),
                 Poll::Pending => break Poll::Pending,
@@ -132,7 +132,7 @@ where
     fn start_send(self: Pin<&mut Self>, item: MessageOut<G, S, MO>) -> Result<(), Self::Error> {
         let message = serde_json::to_string(&item).map_err(StreamDeckSocketError::BadMessage)?;
         self.pin_get_inner()
-            .start_send(tungstenite::Message::Text(message))
+            .start_send(tungstenite::Message::Text(message.into()))
             .map_err(StreamDeckSocketError::WebSocketError)
     }
 
@@ -169,14 +169,14 @@ impl From<u16> for Address {
 }
 
 /// Represents an error that occurred while connecting to and registering with the Stream Deck software.
-#[derive(Debug, Fail)]
+#[derive(Debug, Error)]
 pub enum ConnectError {
     /// The web socket connection could not be established.
-    #[fail(display = "Websocket connection error")]
-    ConnectionError(#[fail(cause)] tungstenite::error::Error),
+    #[error("Websocket connection error")]
+    ConnectionError(#[source] tungstenite::error::Error),
     /// The registration information could not be sent.
-    #[fail(display = "Send error")]
-    SendError(#[fail(cause)] tungstenite::error::Error),
+    #[error("Send error")]
+    SendError(#[source] tungstenite::error::Error),
 }
 
 #[derive(Serialize)]

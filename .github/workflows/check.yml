@@ -6,6 +6,9 @@ on:
   pull_request:
     branches: [ "main" ]
 
+permissions:
+  contents: read
+
 jobs:
   check:
     strategy:
@@ -14,23 +17,19 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v6
 
     - name: Install Rust
-      uses: actions-rs/toolchain@v1
-      with:
-        toolchain: ${{ matrix.toolchain }}
-        override: true
-        components: rustfmt, clippy
+      env:
+        TOOLCHAIN: ${{ matrix.toolchain }}
+      run: |
+        rustup install "${TOOLCHAIN}" --profile minimal --component rustfmt,clippy
+        rustup default "${TOOLCHAIN}"
 
     - name: Format
-      uses: actions-rs/cargo@v1
-      with:
-        command: fmt
-        args: --check
+      run: |
+        cargo fmt --check
 
     - name: Clippy
-      uses: actions-rs/clippy-check@v1
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-        args: --all-features --all-targets
+      run: |
+        cargo clippy --locked --all-features --all-targets
