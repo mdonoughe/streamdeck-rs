@@ -7,7 +7,7 @@ use std::pin::Pin;
 use std::task::{Context, Poll};
 use thiserror::Error;
 use tokio::net::TcpStream;
-use tokio_tungstenite::{self, tungstenite, MaybeTlsStream, WebSocketStream};
+use tokio_tungstenite::{self, MaybeTlsStream, WebSocketStream, tungstenite};
 use url::Url;
 
 /// Provides encoding and decoding for messages sent to/from the Stream Deck software.
@@ -106,7 +106,7 @@ where
                 }
                 Poll::Ready(Some(Ok(_))) => {}
                 Poll::Ready(Some(Err(error))) => {
-                    break Poll::Ready(Some(Err(StreamDeckSocketError::WebSocketError(error))))
+                    break Poll::Ready(Some(Err(StreamDeckSocketError::WebSocketError(error))));
                 }
                 Poll::Ready(None) => break Poll::Ready(None),
                 Poll::Pending => break Poll::Pending,

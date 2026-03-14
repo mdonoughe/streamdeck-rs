@@ -1,6 +1,6 @@
 use crate::{LogMessagePayload, MessageOut};
 use futures::channel::mpsc;
-use slog::{Drain, Key, OwnedKVList, Record, KV};
+use slog::{Drain, KV, Key, OwnedKVList, Record};
 use std::fmt::{self, Write};
 use std::sync::Mutex;
 
