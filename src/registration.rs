@@ -1,5 +1,5 @@
 use super::{Color, DeviceSize, DeviceType};
-use serde::de;
+use serde::{de, ser};
 use serde_derive::{Deserialize, Serialize};
 use std::fmt;
 use std::str::FromStr;
@@ -8,7 +8,7 @@ use thiserror::Error;
 /// Information about a connected device.
 ///
 /// [Official Documentation](https://developer.elgato.com/documentation/stream-deck/sdk/registration-procedure/#info-parameter)
-#[derive(Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct RegistrationInfoDevice {
     /// The ID of the specific device.
     pub id: String,
@@ -26,6 +26,7 @@ pub struct RegistrationInfoDevice {
 /// The language the Stream Deck software is running in.
 ///
 /// [Official Documentation](https://docs.elgato.com/streamdeck/sdk/references/websocket/plugin#registrationinfo)
+#[derive(Debug)]
 pub enum Language {
     English,
     French,
@@ -80,7 +81,29 @@ impl<'de> de::Deserialize<'de> for Language {
     }
 }
 
+impl ser::Serialize for Language {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: ser::Serializer,
+    {
+        let lang = match self {
+            Language::English => "en",
+            Language::French => "fr",
+            Language::German => "de",
+            Language::Spanish => "es",
+            Language::Japanese => "ja",
+            Language::Korean => "ko",
+            Language::ChineseChina => "zh_CN",
+            Language::ChineseTaiwan => "zh_TW",
+            Language::Unknown(value) => value,
+        };
+
+        serializer.serialize_str(lang)
+    }
+}
+
 /// The platform on which the Stream Deck software is running.
+#[derive(Debug)]
 pub enum Platform {
     /// Mac OS X
     Mac,
@@ -88,6 +111,21 @@ pub enum Platform {
     Windows,
     /// A platform not documented in the 4.0.0 SDK.
     Unknown(String),
+}
+
+impl ser::Serialize for Platform {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: ser::Serializer,
+    {
+        let platform = match self {
+            Platform::Mac => "mac",
+            Platform::Windows => "windows",
+            Platform::Unknown(s) => s,
+        };
+
+        serializer.serialize_str(platform)
+    }
 }
 
 impl<'de> de::Deserialize<'de> for Platform {
@@ -123,7 +161,7 @@ impl<'de> de::Deserialize<'de> for Platform {
 /// Information about the Stream Deck software.
 ///
 /// [Official Documentation](https://docs.elgato.com/streamdeck/sdk/references/websocket/plugin#registrationinfo)
-#[derive(Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct RegistrationInfoApplication {
     /// Font being used by the Stream Deck application.
     pub font: String,
@@ -153,25 +191,25 @@ pub struct RegistrationInfoPlugin {
 /// The user's preferred colors
 ///
 /// [Official Documentation](https://docs.elgato.com/streamdeck/sdk/references/websocket/plugin#registrationinfo)
-#[derive(Deserialize, Serialize, Debug)]
+#[derive(Clone, Deserialize, Serialize, Debug, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct UserColors {
     /// Color that denotes the background of a button that is being moused over.
-    button_mouse_over_background_color: Option<Color>,
+    pub button_mouse_over_background_color: Option<Color>,
     /// Color that denotes the background of a pressed button.
-    button_pressed_background_color: Option<Color>,
+    pub button_pressed_background_color: Option<Color>,
     /// Color that denotes the border of a pressed button.
-    button_pressed_border_color: Option<Color>,
+    pub button_pressed_border_color: Option<Color>,
     /// Color that denotes the text of a pressed button.
-    button_pressed_text_color: Option<Color>,
+    pub button_pressed_text_color: Option<Color>,
     /// Color of highlighted text.
-    highlight_color: Option<Color>,
+    pub highlight_color: Option<Color>,
 }
 
 /// Information about the environment the plugin is being loaded into.
 ///
 /// [Official Documentation](https://developer.elgato.com/documentation/stream-deck/sdk/registration-procedure/#info-parameter)
-#[derive(Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct RegistrationInfo {
     pub application: RegistrationInfoApplication,
