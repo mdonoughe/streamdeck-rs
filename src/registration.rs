@@ -90,7 +90,7 @@ pub enum Platform {
     Unknown(String),
 }
 
-impl<'de: 'a, 'a> de::Deserialize<'de> for Platform {
+impl<'de> de::Deserialize<'de> for Platform {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: de::Deserializer<'de>,
