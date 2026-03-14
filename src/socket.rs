@@ -1,11 +1,11 @@
 use super::{Message, MessageOut};
-use failure::Fail;
 use futures::prelude::*;
 use serde::{de, ser};
 use serde_derive::Serialize;
 use std::marker::PhantomData;
 use std::pin::Pin;
 use std::task::{Context, Poll};
+use thiserror::Error;
 use tokio::net::TcpStream;
 use tokio_tungstenite::{self, MaybeTlsStream, WebSocketStream};
 use url::Url;
@@ -74,14 +74,14 @@ impl<G, S, MI, MO> StreamDeckSocket<G, S, MI, MO> {
 }
 
 /// Represents an error that occurred reading or writing the web socket.
-#[derive(Debug, Fail)]
+#[derive(Debug, Error)]
 pub enum StreamDeckSocketError {
     /// The web socket reported an error.
-    #[fail(display = "WebSocket error")]
-    WebSocketError(#[fail(cause)] tungstenite::error::Error),
+    #[error("WebSocket error")]
+    WebSocketError(#[from] tungstenite::error::Error),
     /// The message could not be encoded/decoded.
-    #[fail(display = "Bad message")]
-    BadMessage(#[fail(cause)] serde_json::Error),
+    #[error("Bad message")]
+    BadMessage(#[from] serde_json::Error),
 }
 
 impl<G, S, MI, MO> Stream for StreamDeckSocket<G, S, MI, MO>
@@ -169,14 +169,14 @@ impl From<u16> for Address {
 }
 
 /// Represents an error that occurred while connecting to and registering with the Stream Deck software.
-#[derive(Debug, Fail)]
+#[derive(Debug, Error)]
 pub enum ConnectError {
     /// The web socket connection could not be established.
-    #[fail(display = "Websocket connection error")]
-    ConnectionError(#[fail(cause)] tungstenite::error::Error),
+    #[error("Websocket connection error")]
+    ConnectionError(#[source] tungstenite::error::Error),
     /// The registration information could not be sent.
-    #[fail(display = "Send error")]
-    SendError(#[fail(cause)] tungstenite::error::Error),
+    #[error("Send error")]
+    SendError(#[source] tungstenite::error::Error),
 }
 
 #[derive(Serialize)]

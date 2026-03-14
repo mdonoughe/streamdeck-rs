@@ -1,9 +1,9 @@
 use super::{Color, DeviceSize, DeviceType};
-use failure::Fail;
 use serde::de;
 use serde_derive::{Deserialize, Serialize};
 use std::fmt;
 use std::str::FromStr;
+use thiserror::Error;
 
 /// Information about a connected device.
 ///
@@ -197,26 +197,26 @@ pub struct RegistrationParams {
 }
 
 /// An error that occurred while collecting the registration parameters.
-#[derive(Debug, Fail)]
+#[derive(Debug, Error)]
 pub enum RegistrationParamsError {
     /// The port number was not found.
-    #[fail(display = "port not provided")]
+    #[error("port not provided")]
     NoPort,
     /// The port number was found but could not be parsed.
-    #[fail(display = "port could not be parsed")]
-    BadPort(#[fail(cause)] std::num::ParseIntError),
+    #[error("port could not be parsed")]
+    BadPort(#[source] std::num::ParseIntError),
     /// The uuid was not found.
-    #[fail(display = "uuid not provided")]
+    #[error("uuid not provided")]
     NoUuid,
     /// The registration event to send was not found.
-    #[fail(display = "event not provided")]
+    #[error("event not provided")]
     NoEvent,
     /// The registration environment info was not found.
-    #[fail(display = "info not provided")]
+    #[error("info not provided")]
     NoInfo,
     /// The registration environment info could not be parsed.
-    #[fail(display = "info could not be parsed")]
-    BadInfo(#[fail(cause)] serde_json::Error),
+    #[error("info could not be parsed")]
+    BadInfo(#[from] serde_json::Error),
 }
 
 impl RegistrationParams {
