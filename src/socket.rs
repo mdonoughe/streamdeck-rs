@@ -7,7 +7,7 @@ use std::pin::Pin;
 use std::task::{Context, Poll};
 use thiserror::Error;
 use tokio::net::TcpStream;
-use tokio_tungstenite::{self, MaybeTlsStream, WebSocketStream};
+use tokio_tungstenite::{self, tungstenite, MaybeTlsStream, WebSocketStream};
 use url::Url;
 
 /// Provides encoding and decoding for messages sent to/from the Stream Deck software.
@@ -55,7 +55,7 @@ impl<G, S, MI, MO> StreamDeckSocket<G, S, MI, MO> {
         })
         .unwrap();
         stream
-            .send(tungstenite::Message::Text(message))
+            .send(tungstenite::Message::Text(message.into()))
             .await
             .map_err(ConnectError::SendError)?;
 
@@ -132,7 +132,7 @@ where
     fn start_send(self: Pin<&mut Self>, item: MessageOut<G, S, MO>) -> Result<(), Self::Error> {
         let message = serde_json::to_string(&item).map_err(StreamDeckSocketError::BadMessage)?;
         self.pin_get_inner()
-            .start_send(tungstenite::Message::Text(message))
+            .start_send(tungstenite::Message::Text(message.into()))
             .map_err(StreamDeckSocketError::WebSocketError)
     }
 
